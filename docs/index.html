@@ -22,8 +22,8 @@
   .logo{width:24px;height:24px;border-radius:5px;}
   header h1{font-size:1.2rem;font-weight:700;}
   header .meta{font-size:.78rem;opacity:.8;margin-top:2px;}
-  nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;gap:4px;}
-  nav button{background:none;border:none;padding:12px 14px;font-size:.85rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap;}
+  nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;gap:2px;}
+  nav button{background:none;border:none;padding:12px 12px;font-size:.85rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;font-weight:500;}
   nav button.active{color:var(--accent);border-bottom-color:var(--accent);}
   /* Main content */
   main{padding:24px 32px;max-width:1400px;margin:0 auto;}
@@ -71,7 +71,7 @@
   /* Scroll-to-top */
   #scroll-top{position:fixed;bottom:72px;right:24px;width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;border:none;font-size:1.1rem;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2);z-index:998;}
   #scroll-top.visible{display:flex;}
-  @media(max-width:600px){main{padding:16px;}header{padding:12px 16px;}.grid{grid-template-columns:1fr;}nav{padding:0 8px;}nav button{padding:10px 10px;font-size:.8rem;}}
+  @media(max-width:600px){main{padding:16px;}header{padding:12px 16px;}.grid{grid-template-columns:1fr;}nav{padding:0 4px;gap:0;}nav button{padding:10px 8px;font-size:.75rem;}}
 </style>
 </head>
 <body>
@@ -81,13 +81,13 @@
       <img src="/ranches/favicon-32.png?v=2" alt="" class="logo">
       <h1>Ranch Finder — Bridgewater, Somerset &amp; Cranford, NJ</h1>
     </div>
-    <div class="meta">Last run: July 16, 2026 at 04:05 PM EDT &nbsp;|&nbsp; 72 unreviewed listings</div>
+    <div class="meta">Last run: July 16, 2026 at 04:30 PM EDT &nbsp;|&nbsp; 72 unreviewed listings</div>
   </header>
   <nav>
-    <button class="active" onclick="showSection('new-this-week',this)">New This Week (<span id="nav-new-this-week">72</span>)</button>
-    <button onclick="showSection('unreviewed',this)">Unreviewed (<span id="nav-unreviewed">72</span>)</button>
-    <button onclick="showSection('favorite',this)">Favorites (<span id="nav-favorite">1</span>)</button>
-    <button onclick="showSection('think',this)">Think About It (<span id="nav-think">1</span>)</button>
+    <button class="active" onclick="showSection('new-this-week',this)">🆕 This Week (<span id="nav-new-this-week">72</span>)</button>
+    <button onclick="showSection('unreviewed',this)">📋 Queue (<span id="nav-unreviewed">72</span>)</button>
+    <button onclick="showSection('favorite',this)">⭐ Favorites (<span id="nav-favorite">1</span>)</button>
+    <button onclick="showSection('think',this)">🤔 Maybe (<span id="nav-think">1</span>)</button>
   </nav>
 </div>
 <main><section class="section" id="section-new-this-week"><h2>New This Week <span class="count" id="count-new-this-week">72</span></h2><div class="grid">
@@ -191,7 +191,7 @@
       <span class="stat">N/A</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=1520%20Evelyn%20Ave%20North%20Brunswick%20NJ%2008902&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=1520%20Evelyn%20Ave%20North%20Brunswick%20NJ%2008902&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_36855599', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_36855599', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_36855599', 'deleted')">Delete</button></div>
   </div>
@@ -203,7 +203,7 @@
       <span class="price">$599,900</span>
       <span class="stat">4 bd</span>
       <span class="stat">2.5 ba</span>
-      <span class="stat">11270</span>
+      <span class="stat">11,270 sqft (0.26 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -218,7 +218,7 @@
       <span class="price">$775,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2.5 ba</span>
-      <span class="stat">18901</span>
+      <span class="stat">18,901 sqft (0.43 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -233,7 +233,7 @@
       <span class="price">$750,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">84942</span>
+      <span class="stat">84,942 sqft (1.95 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -248,7 +248,7 @@
       <span class="price">$840,000</span>
       <span class="stat">4 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">95745</span>
+      <span class="stat">95,745 sqft (2.2 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -278,7 +278,7 @@
       <span class="price">$599,900</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">57064</span>
+      <span class="stat">57,064 sqft (1.31 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -293,10 +293,10 @@
       <span class="price">$645,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">9749</span>
+      <span class="stat">9,749 sqft (0.22 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=154%20Mulberry%20Ln%20Middlesex%20NJ%2008846&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=154%20Mulberry%20Ln%20Middlesex%20NJ%2008846&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_36829986', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_36829986', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_36829986', 'deleted')">Delete</button></div>
   </div>
@@ -308,7 +308,7 @@
       <span class="price">$589,000</span>
       <span class="stat">5 bd</span>
       <span class="stat">3 ba</span>
-      <span class="stat">9993</span>
+      <span class="stat">9,993 sqft (0.23 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -323,10 +323,10 @@
       <span class="price">$875,000</span>
       <span class="stat">5 bd</span>
       <span class="stat">4 ba</span>
-      <span class="stat">57499</span>
+      <span class="stat">57,499 sqft (1.32 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=544%20W%208th%20St%20W%20Plainfield%20NJ%2007060&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=544%20W%208th%20St%20W%20Plainfield%20NJ%2007060&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_201570654', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_201570654', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_201570654', 'deleted')">Delete</button></div>
   </div>
@@ -353,7 +353,7 @@
       <span class="price">$649,999</span>
       <span class="stat">5 bd</span>
       <span class="stat">4 ba</span>
-      <span class="stat">9078</span>
+      <span class="stat">9,078 sqft (0.21 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -416,7 +416,7 @@
       <span class="stat">27,007 sqft (0.62 ac)</span>
       <span class="source-badge source-zillow">Zillow</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=15%20Campbell%20Ct%20Bridgewater%20Twp.%20NJ%2008807&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=15%20Campbell%20Ct%20Bridgewater%20Twp.%20NJ%2008807&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('zillow_53727000', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('zillow_53727000', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('zillow_53727000', 'deleted')">Delete</button></div>
   </div>
@@ -443,10 +443,10 @@
       <span class="price">$650,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">17999</span>
+      <span class="stat">17,999 sqft (0.41 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=27%20Fagan%20Pl%20Colonia%20NJ%2007067&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=27%20Fagan%20Pl%20Colonia%20NJ%2007067&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_37013764', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_37013764', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_37013764', 'deleted')">Delete</button></div>
   </div>
@@ -473,7 +473,7 @@
       <span class="price">$649,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2.5 ba</span>
-      <span class="stat">13199</span>
+      <span class="stat">13,199 sqft (0.3 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -488,7 +488,7 @@
       <span class="price">$509,900</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">4199</span>
+      <span class="stat">4,199 sqft (0.1 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -503,7 +503,7 @@
       <span class="price">$350,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">8250</span>
+      <span class="stat">8,250 sqft (0.19 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -518,7 +518,7 @@
       <span class="price">$625,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">6351</span>
+      <span class="stat">6,351 sqft (0.15 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -548,10 +548,10 @@
       <span class="price">$619,900</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">9374</span>
+      <span class="stat">9,374 sqft (0.22 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=496%20Outlook%20Ave%20Colonia%20NJ%2007067&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=496%20Outlook%20Ave%20Colonia%20NJ%2007067&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_37008427', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_37008427', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_37008427', 'deleted')">Delete</button></div>
   </div>
@@ -563,7 +563,7 @@
       <span class="price">$735,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">15085</span>
+      <span class="stat">15,085 sqft (0.35 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -578,10 +578,10 @@
       <span class="price">$575,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">9600</span>
+      <span class="stat">9,600 sqft (0.22 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=42%20Walnut%20St%20Edison%20NJ%2008817&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=42%20Walnut%20St%20Edison%20NJ%2008817&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_36811262', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_36811262', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_36811262', 'deleted')">Delete</button></div>
   </div>
@@ -593,7 +593,7 @@
       <span class="price">$595,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">38925</span>
+      <span class="stat">38,925 sqft (0.89 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -608,7 +608,7 @@
       <span class="price">$509,999</span>
       <span class="stat">4 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">5001</span>
+      <span class="stat">5,001 sqft (0.11 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -641,7 +641,7 @@
       <span class="stat">N/A</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=26%20Hamilton%20Ave%20Edison%20NJ%2008820&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=26%20Hamilton%20Ave%20Edison%20NJ%2008820&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_37033450', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_37033450', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_37033450', 'deleted')">Delete</button></div>
   </div>
@@ -653,7 +653,7 @@
       <span class="price">$775,000</span>
       <span class="stat">4 bd</span>
       <span class="stat">3 ba</span>
-      <span class="stat">10319</span>
+      <span class="stat">10,319 sqft (0.24 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -668,10 +668,10 @@
       <span class="price">$839,900</span>
       <span class="stat">4 bd</span>
       <span class="stat">3 ba</span>
-      <span class="stat">6599</span>
+      <span class="stat">6,599 sqft (0.15 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=24%20Winthrop%20Rd%20Edison%20NJ%2008817&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=24%20Winthrop%20Rd%20Edison%20NJ%2008817&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_36815089', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_36815089', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_36815089', 'deleted')">Delete</button></div>
   </div>
@@ -683,7 +683,7 @@
       <span class="price">$799,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2.5 ba</span>
-      <span class="stat">66647</span>
+      <span class="stat">66,647 sqft (1.53 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -698,7 +698,7 @@
       <span class="price">$699,900</span>
       <span class="stat">3 bd</span>
       <span class="stat">3 ba</span>
-      <span class="stat">6273</span>
+      <span class="stat">6,273 sqft (0.14 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -713,7 +713,7 @@
       <span class="price">$625,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2.5 ba</span>
-      <span class="stat">8000</span>
+      <span class="stat">8,000 sqft (0.18 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -728,7 +728,7 @@
       <span class="price">$739,900</span>
       <span class="stat">4 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">17150</span>
+      <span class="stat">17,150 sqft (0.39 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -743,7 +743,7 @@
       <span class="price">$505,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">5001</span>
+      <span class="stat">5,001 sqft (0.11 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -758,7 +758,7 @@
       <span class="price">$599,000</span>
       <span class="stat">5 bd</span>
       <span class="stat">3 ba</span>
-      <span class="stat">10402</span>
+      <span class="stat">10,402 sqft (0.24 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -788,7 +788,7 @@
       <span class="price">$799,000</span>
       <span class="stat">4 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">17999</span>
+      <span class="stat">17,999 sqft (0.41 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -818,7 +818,7 @@
       <span class="price">$889,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">29834</span>
+      <span class="stat">29,834 sqft (0.68 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -833,7 +833,7 @@
       <span class="price">$799,900</span>
       <span class="stat">4 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">30000</span>
+      <span class="stat">30,000 sqft (0.69 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -848,7 +848,7 @@
       <span class="price">$789,900</span>
       <span class="stat">3 bd</span>
       <span class="stat">2.5 ba</span>
-      <span class="stat">14959</span>
+      <span class="stat">14,959 sqft (0.34 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -863,7 +863,7 @@
       <span class="price">$515,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">5001</span>
+      <span class="stat">5,001 sqft (0.11 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -908,10 +908,10 @@
       <span class="price">$799,000</span>
       <span class="stat">4 bd</span>
       <span class="stat">2.5 ba</span>
-      <span class="stat">2973</span>
+      <span class="stat">2,973 sqft (0.07 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=40%20Watkins%20Ave%20Staten%20Island%20NY%2010312&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=40%20Watkins%20Ave%20Staten%20Island%20NY%2010312&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_56023699', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_56023699', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_56023699', 'deleted')">Delete</button></div>
   </div>
@@ -923,7 +923,7 @@
       <span class="price">$749,900</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">3800</span>
+      <span class="stat">3,800 sqft (0.09 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -938,7 +938,7 @@
       <span class="price">$869,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2.5 ba</span>
-      <span class="stat">6050</span>
+      <span class="stat">6,050 sqft (0.14 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -953,10 +953,10 @@
       <span class="price">$575,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">8599</span>
+      <span class="stat">8,599 sqft (0.2 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=41%20Blair%20Rd%20Port%20Reading%20NJ%2007064&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=41%20Blair%20Rd%20Port%20Reading%20NJ%2007064&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_37021194', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_37021194', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_37021194', 'deleted')">Delete</button></div>
   </div>
@@ -968,7 +968,7 @@
       <span class="price">$549,000</span>
       <span class="stat">2 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">5998</span>
+      <span class="stat">5,998 sqft (0.14 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -983,10 +983,10 @@
       <span class="price">$998,000</span>
       <span class="stat">4 bd</span>
       <span class="stat">2.25 ba</span>
-      <span class="stat">5000</span>
+      <span class="stat">5,000 sqft (0.11 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=330%20Lightner%20Ave%20Staten%20Island%20NY%2010314&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=330%20Lightner%20Ave%20Staten%20Island%20NY%2010314&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_56088682', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_56088682', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_56088682', 'deleted')">Delete</button></div>
   </div>
@@ -998,7 +998,7 @@
       <span class="price">$529,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">5001</span>
+      <span class="stat">5,001 sqft (0.11 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1013,10 +1013,10 @@
       <span class="price">$890,888</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">3920</span>
+      <span class="stat">3,920 sqft (0.09 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=24%20Schmidts%20Ln%20Staten%20Island%20NY%2010314&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=24%20Schmidts%20Ln%20Staten%20Island%20NY%2010314&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_56047782', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_56047782', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_56047782', 'deleted')">Delete</button></div>
   </div>
@@ -1028,7 +1028,7 @@
       <span class="price">$730,000</span>
       <span class="stat">2 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">4100</span>
+      <span class="stat">4,100 sqft (0.09 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1043,7 +1043,7 @@
       <span class="price">$899,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2.25 ba</span>
-      <span class="stat">4365</span>
+      <span class="stat">4,365 sqft (0.1 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1058,10 +1058,10 @@
       <span class="price">$925,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2.25 ba</span>
-      <span class="stat">3920</span>
+      <span class="stat">3,920 sqft (0.09 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=293%20Lightner%20Ave%20Staten%20Island%20NY%2010314&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=293%20Lightner%20Ave%20Staten%20Island%20NY%2010314&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_56047195', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_56047195', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_56047195', 'deleted')">Delete</button></div>
   </div>
@@ -1073,7 +1073,7 @@
       <span class="price">$774,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2.25 ba</span>
-      <span class="stat">4200</span>
+      <span class="stat">4,200 sqft (0.1 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1088,7 +1088,7 @@
       <span class="price">$500,000</span>
       <span class="stat">4 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">4901</span>
+      <span class="stat">4,901 sqft (0.11 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1103,7 +1103,7 @@
       <span class="price">$848,880</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">4000</span>
+      <span class="stat">4,000 sqft (0.09 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1118,10 +1118,10 @@
       <span class="price">$569,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">7200</span>
+      <span class="stat">7,200 sqft (0.17 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=21%20Monroe%20Ave%20Carteret%20NJ%2007008&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=21%20Monroe%20Ave%20Carteret%20NJ%2007008&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_36764756', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_36764756', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_36764756', 'deleted')">Delete</button></div>
   </div>
@@ -1133,7 +1133,7 @@
       <span class="price">$975,000</span>
       <span class="stat">4 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">4000</span>
+      <span class="stat">4,000 sqft (0.09 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1148,7 +1148,7 @@
       <span class="price">$524,900</span>
       <span class="stat">4 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">5001</span>
+      <span class="stat">5,001 sqft (0.11 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1181,7 +1181,7 @@
       <span class="stat">N/A</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=1520%20Evelyn%20Ave%20North%20Brunswick%20NJ%2008902&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=1520%20Evelyn%20Ave%20North%20Brunswick%20NJ%2008902&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_36855599', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_36855599', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_36855599', 'deleted')">Delete</button></div>
   </div>
@@ -1193,7 +1193,7 @@
       <span class="price">$599,900</span>
       <span class="stat">4 bd</span>
       <span class="stat">2.5 ba</span>
-      <span class="stat">11270</span>
+      <span class="stat">11,270 sqft (0.26 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1208,7 +1208,7 @@
       <span class="price">$775,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2.5 ba</span>
-      <span class="stat">18901</span>
+      <span class="stat">18,901 sqft (0.43 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1223,7 +1223,7 @@
       <span class="price">$750,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">84942</span>
+      <span class="stat">84,942 sqft (1.95 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1238,7 +1238,7 @@
       <span class="price">$840,000</span>
       <span class="stat">4 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">95745</span>
+      <span class="stat">95,745 sqft (2.2 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1268,7 +1268,7 @@
       <span class="price">$599,900</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">57064</span>
+      <span class="stat">57,064 sqft (1.31 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1283,10 +1283,10 @@
       <span class="price">$645,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">9749</span>
+      <span class="stat">9,749 sqft (0.22 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=154%20Mulberry%20Ln%20Middlesex%20NJ%2008846&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=154%20Mulberry%20Ln%20Middlesex%20NJ%2008846&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_36829986', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_36829986', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_36829986', 'deleted')">Delete</button></div>
   </div>
@@ -1298,7 +1298,7 @@
       <span class="price">$589,000</span>
       <span class="stat">5 bd</span>
       <span class="stat">3 ba</span>
-      <span class="stat">9993</span>
+      <span class="stat">9,993 sqft (0.23 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1313,10 +1313,10 @@
       <span class="price">$875,000</span>
       <span class="stat">5 bd</span>
       <span class="stat">4 ba</span>
-      <span class="stat">57499</span>
+      <span class="stat">57,499 sqft (1.32 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=544%20W%208th%20St%20W%20Plainfield%20NJ%2007060&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=544%20W%208th%20St%20W%20Plainfield%20NJ%2007060&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_201570654', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_201570654', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_201570654', 'deleted')">Delete</button></div>
   </div>
@@ -1343,7 +1343,7 @@
       <span class="price">$649,999</span>
       <span class="stat">5 bd</span>
       <span class="stat">4 ba</span>
-      <span class="stat">9078</span>
+      <span class="stat">9,078 sqft (0.21 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1406,7 +1406,7 @@
       <span class="stat">27,007 sqft (0.62 ac)</span>
       <span class="source-badge source-zillow">Zillow</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=15%20Campbell%20Ct%20Bridgewater%20Twp.%20NJ%2008807&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=15%20Campbell%20Ct%20Bridgewater%20Twp.%20NJ%2008807&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('zillow_53727000', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('zillow_53727000', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('zillow_53727000', 'deleted')">Delete</button></div>
   </div>
@@ -1433,10 +1433,10 @@
       <span class="price">$650,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">17999</span>
+      <span class="stat">17,999 sqft (0.41 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=27%20Fagan%20Pl%20Colonia%20NJ%2007067&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=27%20Fagan%20Pl%20Colonia%20NJ%2007067&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_37013764', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_37013764', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_37013764', 'deleted')">Delete</button></div>
   </div>
@@ -1463,7 +1463,7 @@
       <span class="price">$649,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2.5 ba</span>
-      <span class="stat">13199</span>
+      <span class="stat">13,199 sqft (0.3 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1478,7 +1478,7 @@
       <span class="price">$509,900</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">4199</span>
+      <span class="stat">4,199 sqft (0.1 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1493,7 +1493,7 @@
       <span class="price">$350,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">8250</span>
+      <span class="stat">8,250 sqft (0.19 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1508,7 +1508,7 @@
       <span class="price">$625,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">6351</span>
+      <span class="stat">6,351 sqft (0.15 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1538,10 +1538,10 @@
       <span class="price">$619,900</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">9374</span>
+      <span class="stat">9,374 sqft (0.22 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=496%20Outlook%20Ave%20Colonia%20NJ%2007067&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=496%20Outlook%20Ave%20Colonia%20NJ%2007067&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_37008427', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_37008427', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_37008427', 'deleted')">Delete</button></div>
   </div>
@@ -1553,7 +1553,7 @@
       <span class="price">$735,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">15085</span>
+      <span class="stat">15,085 sqft (0.35 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1568,10 +1568,10 @@
       <span class="price">$575,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">9600</span>
+      <span class="stat">9,600 sqft (0.22 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=42%20Walnut%20St%20Edison%20NJ%2008817&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=42%20Walnut%20St%20Edison%20NJ%2008817&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_36811262', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_36811262', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_36811262', 'deleted')">Delete</button></div>
   </div>
@@ -1583,7 +1583,7 @@
       <span class="price">$595,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">38925</span>
+      <span class="stat">38,925 sqft (0.89 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1598,7 +1598,7 @@
       <span class="price">$509,999</span>
       <span class="stat">4 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">5001</span>
+      <span class="stat">5,001 sqft (0.11 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1631,7 +1631,7 @@
       <span class="stat">N/A</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=26%20Hamilton%20Ave%20Edison%20NJ%2008820&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=26%20Hamilton%20Ave%20Edison%20NJ%2008820&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_37033450', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_37033450', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_37033450', 'deleted')">Delete</button></div>
   </div>
@@ -1643,7 +1643,7 @@
       <span class="price">$775,000</span>
       <span class="stat">4 bd</span>
       <span class="stat">3 ba</span>
-      <span class="stat">10319</span>
+      <span class="stat">10,319 sqft (0.24 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1658,10 +1658,10 @@
       <span class="price">$839,900</span>
       <span class="stat">4 bd</span>
       <span class="stat">3 ba</span>
-      <span class="stat">6599</span>
+      <span class="stat">6,599 sqft (0.15 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=24%20Winthrop%20Rd%20Edison%20NJ%2008817&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=24%20Winthrop%20Rd%20Edison%20NJ%2008817&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_36815089', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_36815089', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_36815089', 'deleted')">Delete</button></div>
   </div>
@@ -1673,7 +1673,7 @@
       <span class="price">$799,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2.5 ba</span>
-      <span class="stat">66647</span>
+      <span class="stat">66,647 sqft (1.53 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1688,7 +1688,7 @@
       <span class="price">$699,900</span>
       <span class="stat">3 bd</span>
       <span class="stat">3 ba</span>
-      <span class="stat">6273</span>
+      <span class="stat">6,273 sqft (0.14 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1703,7 +1703,7 @@
       <span class="price">$625,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2.5 ba</span>
-      <span class="stat">8000</span>
+      <span class="stat">8,000 sqft (0.18 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1718,7 +1718,7 @@
       <span class="price">$739,900</span>
       <span class="stat">4 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">17150</span>
+      <span class="stat">17,150 sqft (0.39 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1733,7 +1733,7 @@
       <span class="price">$505,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">5001</span>
+      <span class="stat">5,001 sqft (0.11 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1748,7 +1748,7 @@
       <span class="price">$599,000</span>
       <span class="stat">5 bd</span>
       <span class="stat">3 ba</span>
-      <span class="stat">10402</span>
+      <span class="stat">10,402 sqft (0.24 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1778,7 +1778,7 @@
       <span class="price">$799,000</span>
       <span class="stat">4 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">17999</span>
+      <span class="stat">17,999 sqft (0.41 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1808,7 +1808,7 @@
       <span class="price">$889,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">29834</span>
+      <span class="stat">29,834 sqft (0.68 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1823,7 +1823,7 @@
       <span class="price">$799,900</span>
       <span class="stat">4 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">30000</span>
+      <span class="stat">30,000 sqft (0.69 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1838,7 +1838,7 @@
       <span class="price">$789,900</span>
       <span class="stat">3 bd</span>
       <span class="stat">2.5 ba</span>
-      <span class="stat">14959</span>
+      <span class="stat">14,959 sqft (0.34 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1853,7 +1853,7 @@
       <span class="price">$515,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">5001</span>
+      <span class="stat">5,001 sqft (0.11 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1898,10 +1898,10 @@
       <span class="price">$799,000</span>
       <span class="stat">4 bd</span>
       <span class="stat">2.5 ba</span>
-      <span class="stat">2973</span>
+      <span class="stat">2,973 sqft (0.07 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=40%20Watkins%20Ave%20Staten%20Island%20NY%2010312&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=40%20Watkins%20Ave%20Staten%20Island%20NY%2010312&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_56023699', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_56023699', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_56023699', 'deleted')">Delete</button></div>
   </div>
@@ -1913,7 +1913,7 @@
       <span class="price">$749,900</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">3800</span>
+      <span class="stat">3,800 sqft (0.09 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1928,7 +1928,7 @@
       <span class="price">$869,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2.5 ba</span>
-      <span class="stat">6050</span>
+      <span class="stat">6,050 sqft (0.14 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1943,10 +1943,10 @@
       <span class="price">$575,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">8599</span>
+      <span class="stat">8,599 sqft (0.2 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=41%20Blair%20Rd%20Port%20Reading%20NJ%2007064&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=41%20Blair%20Rd%20Port%20Reading%20NJ%2007064&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_37021194', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_37021194', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_37021194', 'deleted')">Delete</button></div>
   </div>
@@ -1958,7 +1958,7 @@
       <span class="price">$549,000</span>
       <span class="stat">2 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">5998</span>
+      <span class="stat">5,998 sqft (0.14 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -1973,10 +1973,10 @@
       <span class="price">$998,000</span>
       <span class="stat">4 bd</span>
       <span class="stat">2.25 ba</span>
-      <span class="stat">5000</span>
+      <span class="stat">5,000 sqft (0.11 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=330%20Lightner%20Ave%20Staten%20Island%20NY%2010314&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=330%20Lightner%20Ave%20Staten%20Island%20NY%2010314&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_56088682', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_56088682', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_56088682', 'deleted')">Delete</button></div>
   </div>
@@ -1988,7 +1988,7 @@
       <span class="price">$529,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">5001</span>
+      <span class="stat">5,001 sqft (0.11 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -2003,10 +2003,10 @@
       <span class="price">$890,888</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">3920</span>
+      <span class="stat">3,920 sqft (0.09 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=24%20Schmidts%20Ln%20Staten%20Island%20NY%2010314&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=24%20Schmidts%20Ln%20Staten%20Island%20NY%2010314&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_56047782', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_56047782', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_56047782', 'deleted')">Delete</button></div>
   </div>
@@ -2018,7 +2018,7 @@
       <span class="price">$730,000</span>
       <span class="stat">2 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">4100</span>
+      <span class="stat">4,100 sqft (0.09 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -2033,7 +2033,7 @@
       <span class="price">$899,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2.25 ba</span>
-      <span class="stat">4365</span>
+      <span class="stat">4,365 sqft (0.1 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -2048,10 +2048,10 @@
       <span class="price">$925,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2.25 ba</span>
-      <span class="stat">3920</span>
+      <span class="stat">3,920 sqft (0.09 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=293%20Lightner%20Ave%20Staten%20Island%20NY%2010314&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=293%20Lightner%20Ave%20Staten%20Island%20NY%2010314&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_56047195', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_56047195', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_56047195', 'deleted')">Delete</button></div>
   </div>
@@ -2063,7 +2063,7 @@
       <span class="price">$774,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2.25 ba</span>
-      <span class="stat">4200</span>
+      <span class="stat">4,200 sqft (0.1 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -2078,7 +2078,7 @@
       <span class="price">$500,000</span>
       <span class="stat">4 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">4901</span>
+      <span class="stat">4,901 sqft (0.11 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -2093,7 +2093,7 @@
       <span class="price">$848,880</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">4000</span>
+      <span class="stat">4,000 sqft (0.09 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -2108,10 +2108,10 @@
       <span class="price">$569,000</span>
       <span class="stat">3 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">7200</span>
+      <span class="stat">7,200 sqft (0.17 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
-    <div class="badges"><span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span></div>
+    <div class="badges"><span class="badge badge-highway">🛣️ Near Highway</span></div>
     <div class="map-btns"><a href="https://www.google.com/maps/search/?api=1&query=21%20Monroe%20Ave%20Carteret%20NJ%2007008&layer=streetview" target="_blank" class="map-btn">📷 Street View</a><a href="https://www.google.com/maps/search/?api=1&query=21%20Monroe%20Ave%20Carteret%20NJ%2007008&t=k" target="_blank" class="map-btn">🛰️ Satellite</a></div>
     <div class="btn-group"><button class="btn btn-favorite " onclick="setStatus('redfin_36764756', 'favorite')">Favorite</button><button class="btn btn-think " onclick="setStatus('redfin_36764756', 'think')">Think About It</button><button class="btn btn-delete " onclick="setStatus('redfin_36764756', 'deleted')">Delete</button></div>
   </div>
@@ -2123,7 +2123,7 @@
       <span class="price">$975,000</span>
       <span class="stat">4 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">4000</span>
+      <span class="stat">4,000 sqft (0.09 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     
@@ -2138,7 +2138,7 @@
       <span class="price">$524,900</span>
       <span class="stat">4 bd</span>
       <span class="stat">2 ba</span>
-      <span class="stat">5001</span>
+      <span class="stat">5,001 sqft (0.11 ac)</span>
       <span class="source-badge source-redfin">Redfin</span>
     </div>
     

@@ -149,12 +149,15 @@ def geocode_address(address):
 
 def check_location_risk(address, lat, lng):
     """
-    Run two location risk checks for a confirmed listing.
-    Returns dict with keys: busy_road, near_highway
-    All False if Maps key not set or geocoding fails.
+    Run location risk checks for a confirmed listing.
+    Returns dict with keys:
+      busy_road:     bool
+      near_highway:  bool  (True if any highway within PROXIMITY_METERS)
+      highway_roads: list of {name, distance_miles} sorted by distance, closest first
+    All empty/False if Maps key not set or geocoding fails.
     Near Industrial removed S004 — invalid Places type, flagged every listing.
     """
-    result = {"busy_road": False, "near_highway": False}
+    result = {"busy_road": False, "near_highway": False, "highway_roads": []}
 
     if not MAPS_KEY:
         return result
@@ -167,24 +170,7 @@ def check_location_risk(address, lat, lng):
 
     latlng = f"{lat},{lng}"
 
-    # Check 1: Busy road — Roads API speedLimits or nearestRoads
-    # Use Roads nearestRoads to get the road the property is ON
-    try:
-        global _maps_calls
-        url = f"https://roads.googleapis.com/v1/nearestRoads?points={latlng}&key={MAPS_KEY}"
-        _maps_calls += 1
-        with urllib.request.urlopen(url, timeout=10) as resp:
-            roads_data = json.loads(resp.read())
-            # If speed limit data available, flag >35mph as busy
-            # Roads API returns speedLimitMph on paid tier only
-            # On free tier we check road name for busy road indicators
-            for road in roads_data.get("snappedPoints", []):
-                name = (road.get("placeId") or "").lower()
-                # Fall through to Places check below for name-based detection
-    except Exception:
-        pass
-
-    # Check 2: Highway within quarter mile — Places API
+    # Highway check — Places nearbysearch for routes within proximity radius
     places_data = maps_get("place/nearbysearch", {
         "location": latlng,
         "radius":   PROXIMITY_METERS,
@@ -192,15 +178,30 @@ def check_location_risk(address, lat, lng):
     })
     if places_data and places_data.get("status") == "OK":
         for place in places_data.get("results", []):
-            name = (place.get("name") or "").lower()
-            if any(kw in name for kw in HIGHWAY_KEYWORDS):
+            name = (place.get("name") or "").strip()
+            if not name:
+                continue
+            name_lower = name.lower()
+            if any(kw in name_lower for kw in HIGHWAY_KEYWORDS):
+                # Compute distance from listing to road centroid
+                ploc = place.get("geometry", {}).get("location", {})
+                if ploc:
+                    dist = haversine_miles(lat, lng, ploc["lat"], ploc["lng"])
+                else:
+                    dist = None
                 result["near_highway"] = True
-                break
-            # Also flag if the property's own road is major
-            # (appears in nearby results and has highway keyword)
-            if place.get("types") and "route" in place.get("types", []):
-                if any(kw in name for kw in HIGHWAY_KEYWORDS):
-                    result["busy_road"] = True
+                result["highway_roads"].append({
+                    "name":           name,
+                    "distance_miles": round(dist, 2) if dist is not None else None,
+                })
+            # Also flag busy_road if property's own street matches
+            if any(kw in name_lower for kw in HIGHWAY_KEYWORDS):
+                result["busy_road"] = True
+
+    # Sort roads by distance, closest first; unknowns last
+    result["highway_roads"].sort(
+        key=lambda r: r["distance_miles"] if r["distance_miles"] is not None else 999
+    )
 
     return result
 
@@ -232,6 +233,14 @@ def fmt_lot(sqft):
         except Exception:
             return str(sqft)
     s = str(sqft).strip()
+    # Bare integer string — Redfin returns sqft as e.g. '11270'
+    if re.match(r"^\d+$", s):
+        try:
+            sqft_val = int(s)
+            acres = round(sqft_val / 43560, 2)
+            return f"{sqft_val:,} sqft ({acres} ac)"
+        except Exception:
+            pass
     m = re.match(r"^([\d,]+\.?\d*)\s*acres?$", s, re.IGNORECASE)
     if m:
         try:
@@ -469,16 +478,17 @@ def process_redfin_area(area):
         risk = check_location_risk(addr, None, None)
 
         listings.append({
-            "id":           f"redfin_{property_id}",
-            "address":      addr,
-            "price":        price,
-            "beds":         beds,
-            "baths":        baths,
-            "lot_sqft":     lot,
-            "url":          full_url,
-            "source":       "Redfin",
-            "busy_road":    risk["busy_road"],
-            "near_highway": risk["near_highway"],
+            "id":            f"redfin_{property_id}",
+            "address":       addr,
+            "price":         price,
+            "beds":          beds,
+            "baths":         baths,
+            "lot_sqft":      lot,
+            "url":           full_url,
+            "source":        "Redfin",
+            "busy_road":     risk["busy_road"],
+            "near_highway":  risk["near_highway"],
+            "highway_roads": risk["highway_roads"],
         })
         print(f"    PASS: {addr} {fmt_price(price)}")
 
@@ -661,16 +671,17 @@ def process_zillow_area(area):
         risk = check_location_risk(addr, None, None)
 
         listings.append({
-            "id":           f"zillow_{zpid}",
-            "address":      addr,
-            "price":        price,
-            "beds":         beds,
-            "baths":        baths,
-            "lot_sqft":     lot,
-            "url":          f"https://www.zillow.com/homedetails/{zpid}_zpid/",
-            "source":       "Zillow",
-            "busy_road":    risk["busy_road"],
-            "near_highway": risk["near_highway"],
+            "id":            f"zillow_{zpid}",
+            "address":       addr,
+            "price":         price,
+            "beds":          beds,
+            "baths":         baths,
+            "lot_sqft":      lot,
+            "url":           f"https://www.zillow.com/homedetails/{zpid}_zpid/",
+            "source":        "Zillow",
+            "busy_road":     risk["busy_road"],
+            "near_highway":  risk["near_highway"],
+            "highway_roads": risk["highway_roads"],
         })
         print(f"    PASS: {addr} {fmt_price(price)}")
 
@@ -720,16 +731,31 @@ def merge_into_state(state, fresh_listings):
     new_ids  = []
     today    = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
+    # Build normalized address index of existing state to catch cross-run dupes
+    existing_norm = {}
+    for lid, data in listings.items():
+        key = normalize_address(data.get("address", ""))
+        if key:
+            existing_norm[key] = lid
+
     for listing in fresh_listings:
         lid = listing["id"]
+
+        # Check if same normalized address already exists under a different ID
+        norm_key = normalize_address(listing.get("address", ""))
+        if norm_key and norm_key in existing_norm and existing_norm[norm_key] != lid:
+            existing_lid = existing_norm[norm_key]
+            print(f"  dedup drop (cross-run dupe of {existing_lid}): {listing['address']}")
+            continue
+
         if lid in listings:
             existing_status = listings[lid].get("status", "new")
             if existing_status in ("favorite", "think", "deleted"):
                 # Preserve user decision — update price + risk flags silently
-                listings[lid]["price"]          = listing["price"]
-                listings[lid]["busy_road"]      = listing.get("busy_road", False)
-                listings[lid]["near_highway"]   = listing.get("near_highway", False)
-                listings[lid]["near_industrial"]= listing.get("near_industrial", False)
+                listings[lid]["price"]         = listing["price"]
+                listings[lid]["busy_road"]     = listing.get("busy_road", False)
+                listings[lid]["near_highway"]  = listing.get("near_highway", False)
+                listings[lid]["highway_roads"] = listing.get("highway_roads", [])
             else:
                 listing["status"]     = "new"
                 listing["first_seen"] = listings[lid].get("first_seen", today)
@@ -739,6 +765,7 @@ def merge_into_state(state, fresh_listings):
             listing["first_seen"] = today
             listing["run_date"]   = today
             listings[lid] = listing
+            existing_norm[norm_key] = lid  # register so later dupes in same batch also caught
             new_ids.append(lid)
             print(f"  NEW: {listing['address']} {fmt_price(listing['price'])}")
 
@@ -751,10 +778,18 @@ def merge_into_state(state, fresh_listings):
 
 def risk_badges(listing):
     badges = ""
-    if listing.get("near_highway"):
-        badges += '<span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span>'
+    highway_roads = listing.get("highway_roads") or []
+    if highway_roads:
+        for road in highway_roads:
+            name = road.get("name", "Highway")
+            dist = road.get("distance_miles")
+            dist_str = f" — {dist} mi" if dist is not None else ""
+            badges += f'<span class="badge badge-highway">🛣️ {name}{dist_str}</span>'
+    elif listing.get("near_highway"):
+        # Fallback for listings scraped before highway_roads was added
+        badges += '<span class="badge badge-highway">🛣️ Near Highway</span>'
     if listing.get("busy_road"):
-        badges += '<span class="badge badge-road" title="Property may be on a busy road">⚠️ Busy Road</span>'
+        badges += '<span class="badge badge-road">⚠️ Busy Road</span>'
     return badges
 
 
@@ -951,8 +986,8 @@ def generate_html(state, new_ids):
   .logo{{width:24px;height:24px;border-radius:5px;}}
   header h1{{font-size:1.2rem;font-weight:700;}}
   header .meta{{font-size:.78rem;opacity:.8;margin-top:2px;}}
-  nav{{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;gap:4px;}}
-  nav button{{background:none;border:none;padding:12px 14px;font-size:.85rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap;}}
+  nav{{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;gap:2px;}}
+  nav button{{background:none;border:none;padding:12px 12px;font-size:.85rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;font-weight:500;}}
   nav button.active{{color:var(--accent);border-bottom-color:var(--accent);}}
   /* Main content */
   main{{padding:24px 32px;max-width:1400px;margin:0 auto;}}
@@ -1000,7 +1035,7 @@ def generate_html(state, new_ids):
   /* Scroll-to-top */
   #scroll-top{{position:fixed;bottom:72px;right:24px;width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;border:none;font-size:1.1rem;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2);z-index:998;}}
   #scroll-top.visible{{display:flex;}}
-  @media(max-width:600px){{main{{padding:16px;}}header{{padding:12px 16px;}}.grid{{grid-template-columns:1fr;}}nav{{padding:0 8px;}}nav button{{padding:10px 10px;font-size:.8rem;}}}}
+  @media(max-width:600px){{main{{padding:16px;}}header{{padding:12px 16px;}}.grid{{grid-template-columns:1fr;}}nav{{padding:0 4px;gap:0;}}nav button{{padding:10px 8px;font-size:.75rem;}}}}
 </style>
 </head>
 <body>
@@ -1013,10 +1048,10 @@ def generate_html(state, new_ids):
     <div class="meta">Last run: {run_time} &nbsp;|&nbsp; {unrev_count} unreviewed listing{"s" if unrev_count != 1 else ""}</div>
   </header>
   <nav>
-    <button class="active" onclick="showSection('new-this-week',this)">New This Week (<span id="nav-new-this-week">{ntw_count}</span>)</button>
-    <button onclick="showSection('unreviewed',this)">Unreviewed (<span id="nav-unreviewed">{unrev_count}</span>)</button>
-    <button onclick="showSection('favorite',this)">Favorites (<span id="nav-favorite">{fav_count}</span>)</button>
-    <button onclick="showSection('think',this)">Think About It (<span id="nav-think">{think_count}</span>)</button>
+    <button class="active" onclick="showSection('new-this-week',this)">🆕 This Week (<span id="nav-new-this-week">{ntw_count}</span>)</button>
+    <button onclick="showSection('unreviewed',this)">📋 Queue (<span id="nav-unreviewed">{unrev_count}</span>)</button>
+    <button onclick="showSection('favorite',this)">⭐ Favorites (<span id="nav-favorite">{fav_count}</span>)</button>
+    <button onclick="showSection('think',this)">🤔 Maybe (<span id="nav-think">{think_count}</span>)</button>
   </nav>
 </div>
 <main>{sections_html}</main>
