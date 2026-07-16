@@ -147,17 +147,61 @@ def geocode_address(address):
     return None, None
 
 
+def nominatim_road_class(lat, lng):
+    """
+    Reverse geocode with Nominatim to get the road the property sits on
+    and its OSM highway classification.
+    Returns (road_name, highway_class) or (None, None) on failure.
+    Rate limit: 1 req/sec — caller must manage spacing.
+    """
+    params = urllib.parse.urlencode({
+        "lat":            lat,
+        "lon":            lng,
+        "format":         "jsonv2",
+        "zoom":           16,
+        "addressdetails": 1,
+        "extratags":      1,
+    })
+    url = f"https://nominatim.openstreetmap.org/reverse?{params}"
+    req = urllib.request.Request(url, headers={"User-Agent": "RanchFinder/1.0"})
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read())
+        road_name = data.get("address", {}).get("road")
+        hw_class  = data.get("type")   # residential, tertiary, secondary, primary, trunk, motorway
+        return road_name, hw_class
+    except Exception as e:
+        print(f"  Nominatim error: {e}", file=sys.stderr)
+        return None, None
+
+# OSM highway class → human-readable road label
+ROAD_CLASS_LABEL = {
+    "motorway":    "🚨 Highway/Motorway",
+    "trunk":       "🚨 Major Highway",
+    "primary":     "🔴 Primary Arterial",
+    "secondary":   "🟠 Secondary Road",
+    "tertiary":    "🟡 Minor Through-Road",
+    "unclassified":"🏘️ Local Road",
+    "residential": "🏘️ Residential Street",
+    "service":     "🟡 Service/Access Road",
+}
+
 def check_location_risk(address, lat, lng):
     """
     Run location risk checks for a confirmed listing.
     Returns dict with keys:
-      busy_road:     bool
-      near_highway:  bool  (True if any highway within PROXIMITY_METERS)
-      highway_roads: list of {name, distance_miles} sorted by distance, closest first
+      property_road:  str — human-readable road classification of property's street
+      busy_road:      bool
+      near_highway:   bool
+      highway_roads:  list of {name, distance_miles} sorted by distance
     All empty/False if Maps key not set or geocoding fails.
-    Near Industrial removed S004 — invalid Places type, flagged every listing.
     """
-    result = {"busy_road": False, "near_highway": False, "highway_roads": []}
+    result = {
+        "property_road": "",
+        "busy_road":     False,
+        "near_highway":  False,
+        "highway_roads": [],
+    }
 
     if not MAPS_KEY:
         return result
@@ -167,6 +211,16 @@ def check_location_risk(address, lat, lng):
         lat, lng = geocode_address(address)
     if lat is None:
         return result
+
+    # Nominatim road classification — what road is the house actually on?
+    import time
+    road_name, hw_class = nominatim_road_class(lat, lng)
+    if road_name and hw_class:
+        label = ROAD_CLASS_LABEL.get(hw_class, f"🏘️ {hw_class.capitalize()}")
+        result["property_road"] = f"{label} ({road_name})"
+    elif road_name:
+        result["property_road"] = f"🏘️ {road_name}"
+    time.sleep(1)  # Nominatim rate limit
 
     latlng = f"{lat},{lng}"
 
@@ -183,7 +237,6 @@ def check_location_risk(address, lat, lng):
                 continue
             name_lower = name.lower()
             if any(kw in name_lower for kw in HIGHWAY_KEYWORDS):
-                # Compute distance from listing to road centroid
                 ploc = place.get("geometry", {}).get("location", {})
                 if ploc:
                     dist = haversine_miles(lat, lng, ploc["lat"], ploc["lng"])
@@ -194,11 +247,9 @@ def check_location_risk(address, lat, lng):
                     "name":           name,
                     "distance_miles": round(dist, 2) if dist is not None else None,
                 })
-            # Also flag busy_road if property's own street matches
             if any(kw in name_lower for kw in HIGHWAY_KEYWORDS):
                 result["busy_road"] = True
 
-    # Sort roads by distance, closest first; unknowns last
     result["highway_roads"].sort(
         key=lambda r: r["distance_miles"] if r["distance_miles"] is not None else 999
     )
@@ -522,11 +573,12 @@ def process_redfin_area(area):
             "source":         "Redfin",
             "basement_label": basement_label,
             "garage_label":   garage_label,
+            "property_road":  risk["property_road"],
             "busy_road":      risk["busy_road"],
             "near_highway":   risk["near_highway"],
             "highway_roads":  risk["highway_roads"],
         })
-        print(f"    PASS: {addr} {fmt_price(price)} | {basement_label or 'no basement data'} | {garage_label}")
+        print(f"    PASS: {addr} {fmt_price(price)} | {basement_label or 'no basement data'} | {garage_label} | {risk['property_road'] or 'road unknown'}")
 
     return listings
 
@@ -760,11 +812,12 @@ def process_zillow_area(area):
             "source":         "Zillow",
             "basement_label": basement_label,
             "garage_label":   garage_label,
+            "property_road":  risk["property_road"],
             "busy_road":      risk["busy_road"],
             "near_highway":   risk["near_highway"],
             "highway_roads":  risk["highway_roads"],
         })
-        print(f"    PASS: {addr} {fmt_price(price)} | {basement_label or 'no basement data'} | {garage_label}")
+        print(f"    PASS: {addr} {fmt_price(price)} | {basement_label or 'no basement data'} | {garage_label} | {risk['property_road'] or 'road unknown'}")
 
     return listings
 
@@ -834,6 +887,7 @@ def merge_into_state(state, fresh_listings):
             if existing_status in ("favorite", "think", "deleted"):
                 # Preserve user decision — update price + risk flags + labels silently
                 listings[lid]["price"]          = listing["price"]
+                listings[lid]["property_road"]  = listing.get("property_road", "")
                 listings[lid]["busy_road"]      = listing.get("busy_road", False)
                 listings[lid]["near_highway"]   = listing.get("near_highway", False)
                 listings[lid]["highway_roads"]  = listing.get("highway_roads", [])
@@ -940,6 +994,7 @@ def listing_card_html(lid, listing, status):
     badges        = risk_badges(listing)
     maps          = map_buttons(listing)
     garage_label  = listing.get("garage_label") or ""
+    property_road = listing.get("property_road") or ""
 
     return f"""
 <div class="card" id="card-{lid}" data-status="{status}" data-id="{lid}" data-christine="{str(christine_fav).lower()}">
@@ -954,6 +1009,7 @@ def listing_card_html(lid, listing, status):
     </div>
     {f'<div class="badges">{badges}</div>' if badges else ''}
     {f'<div class="garage-line">{garage_label}</div>' if garage_label else ''}
+    {f'<div class="road-line">{property_road}</div>' if property_road else ''}
     <div class="map-btns">{maps}</div>
     <div class="btn-group">{buttons}{christine_btn}</div>
   </div>
@@ -1133,7 +1189,8 @@ def generate_html(state, new_ids):
   .badge-basement-yes{{background:#dcfce7;color:#166534;}}
   .badge-basement-maybe{{background:#fef9c3;color:#854d0e;}}
   .badge-basement-no{{background:#f3f4f6;color:#6b7280;}}
-  .garage-line{{font-size:.8rem;color:var(--muted);margin-bottom:8px;}}
+  .garage-line{{font-size:.8rem;color:var(--muted);margin-bottom:6px;}}
+  .road-line{{font-size:.8rem;color:var(--muted);margin-bottom:8px;}}
   .map-btns{{display:flex;gap:8px;margin-bottom:10px;}}
   .map-btn{{font-size:.78rem;font-weight:600;padding:5px 12px;border-radius:6px;background:#f0f9f4;color:var(--accent);text-decoration:none;border:1px solid #c6e8d5;}}
   .map-btn:hover{{background:#d1f0e0;}}
