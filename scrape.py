@@ -149,11 +149,12 @@ def geocode_address(address):
 
 def check_location_risk(address, lat, lng):
     """
-    Run three location risk checks for a confirmed listing.
-    Returns dict with keys: busy_road, near_highway, near_industrial
+    Run two location risk checks for a confirmed listing.
+    Returns dict with keys: busy_road, near_highway
     All False if Maps key not set or geocoding fails.
+    Near Industrial removed S004 — invalid Places type, flagged every listing.
     """
-    result = {"busy_road": False, "near_highway": False, "near_industrial": False}
+    result = {"busy_road": False, "near_highway": False}
 
     if not MAPS_KEY:
         return result
@@ -201,16 +202,6 @@ def check_location_risk(address, lat, lng):
                 if any(kw in name for kw in HIGHWAY_KEYWORDS):
                     result["busy_road"] = True
 
-    # Check 3: Industrial zone within quarter mile — Places API
-    industrial_data = maps_get("place/nearbysearch", {
-        "location": latlng,
-        "radius":   PROXIMITY_METERS,
-        "type":     "industrial_building",
-    })
-    if industrial_data and industrial_data.get("status") == "OK":
-        if industrial_data.get("results"):
-            result["near_industrial"] = True
-
     return result
 
 # ---------------------------------------------------------------------------
@@ -218,6 +209,11 @@ def check_location_risk(address, lat, lng):
 # ---------------------------------------------------------------------------
 
 def fmt_price(p):
+    if p is None:
+        return "N/A"
+    # Unwrap Zillow price dict e.g. {'value': 749000, 'pricePerSquareFoot': 367}
+    if isinstance(p, dict):
+        p = p.get("value") or p.get("amount") or p.get("price")
     if p is None:
         return "N/A"
     try:
@@ -473,17 +469,16 @@ def process_redfin_area(area):
         risk = check_location_risk(addr, None, None)
 
         listings.append({
-            "id":             f"redfin_{property_id}",
-            "address":        addr,
-            "price":          price,
-            "beds":           beds,
-            "baths":          baths,
-            "lot_sqft":       lot,
-            "url":            full_url,
-            "source":         "Redfin",
-            "busy_road":      risk["busy_road"],
-            "near_highway":   risk["near_highway"],
-            "near_industrial":risk["near_industrial"],
+            "id":           f"redfin_{property_id}",
+            "address":      addr,
+            "price":        price,
+            "beds":         beds,
+            "baths":        baths,
+            "lot_sqft":     lot,
+            "url":          full_url,
+            "source":       "Redfin",
+            "busy_road":    risk["busy_road"],
+            "near_highway": risk["near_highway"],
         })
         print(f"    PASS: {addr} {fmt_price(price)}")
 
@@ -666,17 +661,16 @@ def process_zillow_area(area):
         risk = check_location_risk(addr, None, None)
 
         listings.append({
-            "id":             f"zillow_{zpid}",
-            "address":        addr,
-            "price":          price,
-            "beds":           beds,
-            "baths":          baths,
-            "lot_sqft":       lot,
-            "url":            f"https://www.zillow.com/homedetails/{zpid}_zpid/",
-            "source":         "Zillow",
-            "busy_road":      risk["busy_road"],
-            "near_highway":   risk["near_highway"],
-            "near_industrial":risk["near_industrial"],
+            "id":           f"zillow_{zpid}",
+            "address":      addr,
+            "price":        price,
+            "beds":         beds,
+            "baths":        baths,
+            "lot_sqft":     lot,
+            "url":          f"https://www.zillow.com/homedetails/{zpid}_zpid/",
+            "source":       "Zillow",
+            "busy_road":    risk["busy_road"],
+            "near_highway": risk["near_highway"],
         })
         print(f"    PASS: {addr} {fmt_price(price)}")
 
@@ -743,6 +737,7 @@ def merge_into_state(state, fresh_listings):
         else:
             listing["status"]     = "new"
             listing["first_seen"] = today
+            listing["run_date"]   = today
             listings[lid] = listing
             new_ids.append(lid)
             print(f"  NEW: {listing['address']} {fmt_price(listing['price'])}")
@@ -760,8 +755,6 @@ def risk_badges(listing):
         badges += '<span class="badge badge-highway" title="Highway within quarter mile">🛣️ Near Highway</span>'
     if listing.get("busy_road"):
         badges += '<span class="badge badge-road" title="Property may be on a busy road">⚠️ Busy Road</span>'
-    if listing.get("near_industrial"):
-        badges += '<span class="badge badge-industrial" title="Industrial zone within quarter mile">🏭 Near Industrial</span>'
     return badges
 
 
@@ -773,12 +766,13 @@ def map_buttons(listing):
     if lat and lng:
         # Street View — opens directly in Street View panorama mode per Google Maps URL spec
         sv_url  = f"https://www.google.com/maps/@?api=1&map_action=pano&viewpoint={lat},{lng}"
-        # Satellite — opens aerial view at high zoom
+        # Satellite — forces aerial/satellite layer at high zoom
         sat_url = f"https://www.google.com/maps/@{lat},{lng},18z/data=!3m1!1e3"
     else:
-        # Fallback — address-based Street View search
+        # Fallback — address-based; layer=streetview for Street View,
+        # t=k satellite tile type for satellite view
         sv_url  = f"https://www.google.com/maps/search/?api=1&query={addr_enc}&layer=streetview"
-        sat_url = f"https://www.google.com/maps/search/?api=1&query={addr_enc}"
+        sat_url = f"https://www.google.com/maps/search/?api=1&query={addr_enc}&t=k"
 
     return (
         f'<a href="{sv_url}" target="_blank" class="map-btn">📷 Street View</a>'
@@ -832,38 +826,105 @@ def generate_html(state, new_ids):
         eastern = timezone.utc
     run_time = datetime.now(eastern).strftime("%B %d, %Y at %I:%M %p %Z")
 
-    groups = {"new": [], "favorite": [], "think": []}
+    # Determine "this week" cutoff — listings first_seen within 7 days
+    today_dt = datetime.now(timezone.utc)
+    def is_new_this_week(data):
+        fs = data.get("first_seen") or data.get("run_date") or ""
+        if not fs:
+            return False
+        try:
+            from datetime import date
+            fs_date = datetime.strptime(fs[:10], "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            return (today_dt - fs_date).days <= 7
+        except Exception:
+            return False
+
+    groups = {"new_this_week": [], "unreviewed": [], "favorite": [], "think": []}
     for lid, data in listings.items():
         s = data.get("status", "new")
         if s == "deleted":
             continue
-        groups.get(s, groups["new"]).append((lid, data))
+        if s == "favorite":
+            groups["favorite"].append((lid, data))
+        elif s == "think":
+            groups["think"].append((lid, data))
+        else:
+            if is_new_this_week(data):
+                groups["new_this_week"].append((lid, data))
+            groups["unreviewed"].append((lid, data))
 
-    def section(title, key, cards, collapsed=False):
+    # Sort unreviewed by run_date desc then first_seen desc
+    groups["unreviewed"].sort(key=lambda x: (x[1].get("run_date",""), x[1].get("first_seen","")), reverse=True)
+
+    # Group unreviewed by run_date for rendering
+    from collections import OrderedDict
+    unreviewed_by_date = OrderedDict()
+    for lid, data in groups["unreviewed"]:
+        rd = data.get("run_date") or data.get("first_seen") or "Unknown"
+        unreviewed_by_date.setdefault(rd, []).append((lid, data))
+
+    # Build unreviewed section HTML — grouped by run_date with Delete All per group
+    def unreviewed_section_html():
+        if not groups["unreviewed"]:
+            return '<section class="section hidden" id="section-unreviewed"><h2>Unreviewed</h2><p class="empty">No unreviewed listings.</p></section>'
+        inner = ""
+        for rd, items in unreviewed_by_date.items():
+            group_ids = json.dumps([lid for lid, _ in items])
+            inner += (
+                f'<div class="run-group">'
+                f'<div class="run-group-header">'
+                f'<span class="run-date-label">Run: {rd}</span>'
+                f'<button class="delete-all-btn" onclick="deleteAll({group_ids})">Delete All ({len(items)})</button>'
+                f'</div>'
+                f'<div class="grid">'
+                + "".join(listing_card_html(lid, d, d.get("status","new")) for lid, d in items)
+                + '</div></div>'
+            )
+        count = len(groups["unreviewed"])
+        return (
+            f'<section class="section hidden" id="section-unreviewed">'
+            f'<h2>Unreviewed <span class="count" id="count-unreviewed">{count}</span></h2>'
+            + inner +
+            '</section>'
+        )
+
+    def simple_section(title, key, cards, collapsed=True):
         hidden = " hidden" if collapsed else ""
+        count_id = f'id="count-{key}"'
         if not cards:
             return (
                 f'<section class="section{hidden}" id="section-{key}">'
-                f'<h2>{title}</h2>'
+                f'<h2>{title} <span class="count" {count_id}>0</span></h2>'
                 f'<p class="empty">No listings in this section.</p></section>'
             )
-        html = "".join(listing_card_html(lid, d, d.get("status", "new")) for lid, d in cards)
+        html = "".join(listing_card_html(lid, d, d.get("status","new")) for lid, d in cards)
         return (
             f'<section class="section{hidden}" id="section-{key}">'
-            f'<h2>{title} <span class="count">{len(cards)}</span></h2>'
+            f'<h2>{title} <span class="count" {count_id}>{len(cards)}</span></h2>'
             f'<div class="grid">{html}</div></section>'
         )
 
+    ntw_count      = len(groups["new_this_week"])
+    unrev_count    = len(groups["unreviewed"])
+    fav_count      = len(groups["favorite"])
+    think_count    = len(groups["think"])
+
+    ntw_cards = "".join(listing_card_html(lid, d, d.get("status","new")) for lid, d in groups["new_this_week"])
+    new_this_week_html = (
+        f'<section class="section" id="section-new-this-week">'
+        f'<h2>New This Week <span class="count" id="count-new-this-week">{ntw_count}</span></h2>'
+        + (f'<div class="grid">{ntw_cards}</div>' if ntw_count else '<p class="empty">No new listings this week.</p>')
+        + '</section>'
+    )
+
     sections_html = (
-        section("New Listings",   "new",      groups["new"],      collapsed=False) +
-        section("Favorites",      "favorite", groups["favorite"], collapsed=True)  +
-        section("Think About It", "think",    groups["think"],    collapsed=True)
+        new_this_week_html +
+        unreviewed_section_html() +
+        simple_section("Favorites",      "favorite", groups["favorite"], collapsed=True) +
+        simple_section("Think About It", "think",    groups["think"],    collapsed=True)
     )
 
     state_json   = json.dumps({k: v for k, v in listings.items() if v.get("status") != "deleted"})
-    new_count    = len(groups["new"])
-    fav_count    = len(groups["favorite"])
-    think_count  = len(groups["think"])
     worker_url   = os.environ.get("WORKER_URL", "https://ranches-proxy.johnzur.workers.dev")
 
     return f"""<!DOCTYPE html>
@@ -882,19 +943,29 @@ def generate_html(state, new_ids):
 <style>
   :root{{--bg:#f7f6f3;--surface:#fff;--border:#e2e0db;--text:#1a1a1a;--muted:#6b6b6b;--accent:#2d6a4f;--radius:10px;--shadow:0 2px 8px rgba(0,0,0,.08);}}
   *{{box-sizing:border-box;margin:0;padding:0;}}
-  body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;}}
-  header{{background:var(--accent);color:#fff;padding:20px 32px;}}
+  body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;padding-top:0;}}
+  /* Sticky header + nav */
+  .sticky-top{{position:sticky;top:0;z-index:100;}}
+  header{{background:var(--accent);color:#fff;padding:14px 32px;}}
   .header-title{{display:flex;align-items:center;gap:10px;}}
-  .logo{{width:28px;height:28px;border-radius:6px;}}
-  header h1{{font-size:1.4rem;font-weight:700;}}
-  header .meta{{font-size:.82rem;opacity:.8;margin-top:4px;}}
+  .logo{{width:24px;height:24px;border-radius:5px;}}
+  header h1{{font-size:1.2rem;font-weight:700;}}
+  header .meta{{font-size:.78rem;opacity:.8;margin-top:2px;}}
   nav{{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;gap:4px;}}
-  nav button{{background:none;border:none;padding:14px 16px;font-size:.88rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;font-weight:500;}}
+  nav button{{background:none;border:none;padding:12px 14px;font-size:.85rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap;}}
   nav button.active{{color:var(--accent);border-bottom-color:var(--accent);}}
-  main{{padding:28px 32px;max-width:1400px;margin:0 auto;}}
+  /* Main content */
+  main{{padding:24px 32px;max-width:1400px;margin:0 auto;}}
   .section{{margin-bottom:48px;}}
-  .section h2{{font-size:1.1rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;}}
-  .count{{background:var(--accent);color:#fff;font-size:.75rem;padding:2px 8px;border-radius:20px;font-weight:600;}}
+  .section h2{{font-size:1.05rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;}}
+  .count{{background:var(--accent);color:#fff;font-size:.72rem;padding:2px 8px;border-radius:20px;font-weight:600;}}
+  /* Run date groups */
+  .run-group{{margin-bottom:32px;}}
+  .run-group-header{{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}}
+  .run-date-label{{font-size:.82rem;font-weight:600;color:var(--muted);}}
+  .delete-all-btn{{font-size:.75rem;font-weight:600;padding:4px 12px;border-radius:6px;border:1px solid #fca5a5;background:#fef2f2;color:#dc2626;cursor:pointer;}}
+  .delete-all-btn:hover{{background:#fee2e2;}}
+  /* Cards */
   .grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;}}
   .card{{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);transition:opacity .3s;}}
   .card-body{{padding:16px;}}
@@ -911,7 +982,6 @@ def generate_html(state, new_ids):
   .badge{{font-size:.75rem;font-weight:600;padding:3px 10px;border-radius:4px;}}
   .badge-highway{{background:#fef3c7;color:#92400e;}}
   .badge-road{{background:#fee2e2;color:#991b1b;}}
-  .badge-industrial{{background:#f3f4f6;color:#374151;}}
   .map-btns{{display:flex;gap:8px;margin-bottom:10px;}}
   .map-btn{{font-size:.78rem;font-weight:600;padding:5px 12px;border-radius:6px;background:#f0f9f4;color:var(--accent);text-decoration:none;border:1px solid #c6e8d5;}}
   .map-btn:hover{{background:#d1f0e0;}}
@@ -924,30 +994,39 @@ def generate_html(state, new_ids):
   .btn-delete.active{{background:#c0392b;}}
   .empty{{color:var(--muted);font-size:.9rem;padding:12px 0;}}
   .hidden{{display:none!important;}}
+  /* Toast */
   #toast{{position:fixed;bottom:24px;right:24px;background:#1a1a1a;color:#fff;padding:10px 18px;border-radius:8px;font-size:.85rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}}
   #toast.show{{opacity:1;}}
-  @media(max-width:600px){{main{{padding:16px;}}header{{padding:16px;}}.grid{{grid-template-columns:1fr;}}}}
+  /* Scroll-to-top */
+  #scroll-top{{position:fixed;bottom:72px;right:24px;width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;border:none;font-size:1.1rem;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2);z-index:998;}}
+  #scroll-top.visible{{display:flex;}}
+  @media(max-width:600px){{main{{padding:16px;}}header{{padding:12px 16px;}}.grid{{grid-template-columns:1fr;}}nav{{padding:0 8px;}}nav button{{padding:10px 10px;font-size:.8rem;}}}}
 </style>
 </head>
 <body>
-<header>
-  <div class="header-title">
-    <img src="/ranches/favicon-32.png?v=2" alt="" class="logo">
-    <h1>Ranch Finder — Bridgewater, Somerset &amp; Cranford, NJ</h1>
-  </div>
-  <div class="meta">Last run: {run_time} &nbsp;|&nbsp; {new_count} unreviewed listing{"s" if new_count != 1 else ""}</div>
-</header>
-<nav>
-  <button class="active" onclick="showSection('new',this)">New ({new_count})</button>
-  <button onclick="showSection('favorite',this)">Favorites ({fav_count})</button>
-  <button onclick="showSection('think',this)">Think About It ({think_count})</button>
-</nav>
+<div class="sticky-top">
+  <header>
+    <div class="header-title">
+      <img src="/ranches/favicon-32.png?v=2" alt="" class="logo">
+      <h1>Ranch Finder — Bridgewater, Somerset &amp; Cranford, NJ</h1>
+    </div>
+    <div class="meta">Last run: {run_time} &nbsp;|&nbsp; {unrev_count} unreviewed listing{"s" if unrev_count != 1 else ""}</div>
+  </header>
+  <nav>
+    <button class="active" onclick="showSection('new-this-week',this)">New This Week (<span id="nav-new-this-week">{ntw_count}</span>)</button>
+    <button onclick="showSection('unreviewed',this)">Unreviewed (<span id="nav-unreviewed">{unrev_count}</span>)</button>
+    <button onclick="showSection('favorite',this)">Favorites (<span id="nav-favorite">{fav_count}</span>)</button>
+    <button onclick="showSection('think',this)">Think About It (<span id="nav-think">{think_count}</span>)</button>
+  </nav>
+</div>
 <main>{sections_html}</main>
 <div id="toast"></div>
+<button id="scroll-top" onclick="window.scrollTo({{top:0,behavior:'smooth'}})">↑</button>
 <script>
 const WORKER_URL = "{worker_url}";
 let state = {state_json};
 
+// Section nav — Option B: one section at a time
 function showSection(key, btn) {{
   document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
   document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
@@ -956,8 +1035,28 @@ function showSection(key, btn) {{
   if (btn) btn.classList.add("active");
 }}
 
+// Count a section's visible (non-deleted, non-hidden) cards
+function countVisible(sectionId) {{
+  const sec = document.getElementById("section-" + sectionId);
+  if (!sec) return 0;
+  return sec.querySelectorAll(".card:not([style*='display: none'])").length;
+}}
+
+// Update all nav counts from live DOM
+function updateNavCounts() {{
+  const sections = ["new-this-week", "unreviewed", "favorite", "think"];
+  sections.forEach(key => {{
+    const navEl = document.getElementById("nav-" + key);
+    const countEl = document.getElementById("count-" + key);
+    const n = countVisible(key);
+    if (navEl) navEl.textContent = n;
+    if (countEl) countEl.textContent = n;
+  }});
+}}
+
 async function setStatus(lid, newStatus) {{
   if (!state[lid]) return;
+  const oldStatus = state[lid].status || "new";
   state[lid].status = newStatus;
   const card = document.getElementById("card-" + lid);
   if (card) {{
@@ -967,9 +1066,28 @@ async function setStatus(lid, newStatus) {{
     if (activeBtn) activeBtn.classList.add("active");
     if (newStatus === "deleted") {{
       card.style.opacity = "0.3";
+      setTimeout(() => {{
+        card.style.display = "none";
+        updateNavCounts();
+      }}, 400);
+    }} else {{
+      updateNavCounts();
+    }}
+  }}
+  showToast("Saving...");
+  await commitStateToGitHub();
+}}
+
+async function deleteAll(ids) {{
+  for (const lid of ids) {{
+    if (state[lid]) state[lid].status = "deleted";
+    const card = document.getElementById("card-" + lid);
+    if (card) {{
+      card.style.opacity = "0.3";
       setTimeout(() => {{ card.style.display = "none"; }}, 400);
     }}
   }}
+  setTimeout(updateNavCounts, 500);
   showToast("Saving...");
   await commitStateToGitHub();
 }}
@@ -996,6 +1114,13 @@ function showToast(msg) {{
   t.classList.add("show");
   setTimeout(() => t.classList.remove("show"), 2500);
 }}
+
+// Floating scroll-to-top visibility
+window.addEventListener("scroll", () => {{
+  const btn = document.getElementById("scroll-top");
+  if (window.scrollY > 400) btn.classList.add("visible");
+  else btn.classList.remove("visible");
+}});
 </script>
 </body>
 </html>"""
