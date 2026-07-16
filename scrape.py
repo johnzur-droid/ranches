@@ -662,7 +662,11 @@ def zillow_is_ranch(details):
         if has_attached:
             parts.append("attached")
         elif garage_feats:
-            parts.append(garage_feats[0])
+            # Strip trailing 'garage' from feature string to avoid double word
+            feat = garage_feats[0].lower()
+            feat_clean = re.sub(r'\bgarage\b', '', feat, flags=re.IGNORECASE).strip(" ,")
+            if feat_clean:
+                parts.append(feat_clean)
         if parts:
             garage_label = f"🚗 {' '.join(parts)} garage"
         else:
