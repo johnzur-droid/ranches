@@ -367,6 +367,8 @@ def redfin_is_ranch(details):
     basement_yn     = False
     basement_filled = False
     room_desc_text  = ""
+    garage_spaces   = None
+    garage_desc     = []
 
     for sg in amenities.get("superGroups", []):
         for ag in sg.get("amenityGroups", []):
@@ -381,14 +383,13 @@ def redfin_is_ranch(details):
                     basement_filled = True
                 elif name == "Room Description":
                     room_desc_text = val_str
-
-    # Basement confirmed if either structured field is populated
-    has_basement = (
-        basement_yn or
-        basement_filled or
-        any(kw in description for kw in BASEMENT_KEYWORDS) or
-        any(kw in room_desc_text for kw in BASEMENT_KEYWORDS)
-    )
+                elif name == "# Of Garage Spaces" and vals:
+                    try:
+                        garage_spaces = int(vals[0])
+                    except (ValueError, TypeError):
+                        pass
+                elif name == "Garage Description" and vals:
+                    garage_desc = [str(v) for v in (entry.get("amenityValues") or [])]
 
     # Ranch — Redfin style field not reliably populated (confirmed S003)
     # keyword=ranch at search level is 100% accurate (confirmed S002)
@@ -402,7 +403,43 @@ def redfin_is_ranch(details):
     if not description and not room_desc_text:
         is_ranch = True  # keyword=ranch search already confirmed 100% accurate
 
-    return is_ranch, has_basement
+    # Basement label — stored on listing, shown as badge (not a hard filter)
+    desc_has_basement = (
+        any(kw in description for kw in BASEMENT_KEYWORDS) or
+        any(kw in room_desc_text for kw in BASEMENT_KEYWORDS)
+    )
+    if basement_yn:
+        val = room_desc_text + " " + description
+        if "finish" in val:
+            basement_label = "✅ Finished Basement"
+        elif "unfinish" in val:
+            basement_label = "✅ Unfinished Basement"
+        else:
+            basement_label = "✅ Basement"
+    elif basement_filled:
+        basement_label = "✅ Basement"
+    elif desc_has_basement:
+        basement_label = "⚠️ Basement Unconfirmed"
+    elif basement_yn is False:
+        basement_label = "❌ No Basement"
+    else:
+        basement_label = ""
+
+    # Garage label — from Parking Information amenity group
+    if garage_spaces is not None and garage_spaces > 0:
+        desc_parts = ", ".join(garage_desc) if garage_desc else ""
+        if desc_parts:
+            garage_label = f"🚗 {garage_spaces}-car garage ({desc_parts})"
+        else:
+            garage_label = f"🚗 {garage_spaces}-car garage"
+    elif garage_spaces == 0:
+        garage_label = "🚗 No garage"
+    elif any(kw in description for kw in ["garage", "carport"]):
+        garage_label = "🚗 Garage (from description)"
+    else:
+        garage_label = "🚗 Unknown"
+
+    return is_ranch, basement_label, garage_label
 
 
 def redfin_fmt_address(r):
@@ -447,7 +484,7 @@ def process_redfin_area(area):
             continue
 
         details = redfin_details(property_id, listing_id)
-        is_ranch, has_basement = redfin_is_ranch(details)
+        is_ranch, basement_label, garage_label = redfin_is_ranch(details)
 
         addr = redfin_fmt_address(r)
 
@@ -464,9 +501,6 @@ def process_redfin_area(area):
         if not is_ranch:
             print(f"    skip (not ranch): {addr}")
             continue
-        if not has_basement:
-            print(f"    skip (no basement): {addr}")
-            continue
 
         lot_info = r.get("lotSize") or {}
         lot = lot_info.get("amount") if isinstance(lot_info, dict) else lot_info
@@ -478,19 +512,21 @@ def process_redfin_area(area):
         risk = check_location_risk(addr, None, None)
 
         listings.append({
-            "id":            f"redfin_{property_id}",
-            "address":       addr,
-            "price":         price,
-            "beds":          beds,
-            "baths":         baths,
-            "lot_sqft":      lot,
-            "url":           full_url,
-            "source":        "Redfin",
-            "busy_road":     risk["busy_road"],
-            "near_highway":  risk["near_highway"],
-            "highway_roads": risk["highway_roads"],
+            "id":             f"redfin_{property_id}",
+            "address":        addr,
+            "price":          price,
+            "beds":           beds,
+            "baths":          baths,
+            "lot_sqft":       lot,
+            "url":            full_url,
+            "source":         "Redfin",
+            "basement_label": basement_label,
+            "garage_label":   garage_label,
+            "busy_road":      risk["busy_road"],
+            "near_highway":   risk["near_highway"],
+            "highway_roads":  risk["highway_roads"],
         })
-        print(f"    PASS: {addr} {fmt_price(price)}")
+        print(f"    PASS: {addr} {fmt_price(price)} | {basement_label or 'no basement data'} | {garage_label}")
 
     return listings
 
@@ -579,24 +615,66 @@ def zillow_is_ranch(details):
     if not is_ranch:
         is_ranch = any(kw in desc for kw in RANCH_KEYWORDS)
 
-    # --- Basement check ---
+    # --- Basement label (not a hard filter — stored on listing, shown as badge) ---
     basement_yn  = reso.get("basementYN")
     basement_str = str(reso.get("basement") or "").lower()
 
     if isinstance(basement_yn, bool):
-        has_basement = basement_yn
+        yn_confirmed = basement_yn
     elif isinstance(basement_yn, str):
-        has_basement = basement_yn.strip().lower() in ("yes", "true", "1")
+        yn_confirmed = basement_yn.strip().lower() in ("yes", "true", "1")
     else:
-        has_basement = False
+        yn_confirmed = None
 
-    if not has_basement and basement_str and basement_str not in ("none", ""):
-        has_basement = True
+    desc_has_basement = any(kw in desc for kw in BASEMENT_KEYWORDS)
 
-    if not has_basement:
-        has_basement = any(kw in desc for kw in BASEMENT_KEYWORDS)
+    if yn_confirmed is True:
+        if "finish" in basement_str and "unfinish" not in basement_str:
+            basement_label = "✅ Finished Basement"
+        elif "unfinish" in basement_str:
+            basement_label = "✅ Unfinished Basement"
+        elif basement_str and basement_str not in ("none", ""):
+            basement_label = "✅ Basement"
+        else:
+            basement_label = "✅ Basement"
+    elif basement_str and basement_str not in ("none", ""):
+        basement_label = "✅ Basement"
+    elif desc_has_basement:
+        basement_label = "⚠️ Basement Unconfirmed"
+    elif yn_confirmed is False:
+        basement_label = "❌ No Basement"
+    else:
+        basement_label = ""
 
-    return is_ranch, has_basement
+    # --- Garage label ---
+    has_garage     = reso.get("hasGarage")
+    has_attached   = reso.get("hasAttachedGarage")
+    garage_cap     = reso.get("garageParkingCapacity")
+    parking_feats  = reso.get("parkingFeatures") or []
+    # Filter parkingFeatures to garage-relevant entries only
+    garage_feats   = [f for f in parking_feats
+                      if any(kw in f.lower() for kw in ["garage","attached","detached"])]
+
+    if has_garage:
+        parts = []
+        if garage_cap:
+            parts.append(f"{garage_cap}-car")
+        if has_attached:
+            parts.append("attached")
+        elif garage_feats:
+            parts.append(garage_feats[0])
+        if parts:
+            garage_label = f"🚗 {' '.join(parts)} garage"
+        else:
+            garage_label = "🚗 Garage"
+    elif has_garage is False:
+        garage_label = "🚗 No garage"
+    elif any(kw in desc for kw in ["garage", "carport"]):
+        garage_label = "🚗 Garage (from description)"
+    else:
+        garage_label = "🚗 Unknown"
+
+    return is_ranch, basement_label, garage_label
 
 
 def zillow_fmt_address(r):
@@ -640,7 +718,7 @@ def process_zillow_area(area):
             continue
 
         details = zillow_details(zpid)
-        is_ranch, has_basement = zillow_is_ranch(details)
+        is_ranch, basement_label, garage_label = zillow_is_ranch(details)
 
         addr = zillow_fmt_address(r)
 
@@ -655,9 +733,6 @@ def process_zillow_area(area):
         if not is_ranch:
             print(f"    skip (not ranch): {addr}")
             continue
-        if not has_basement:
-            print(f"    skip (no basement): {addr}")
-            continue
 
         lot_info = r.get("lotSizeWithUnit") or {}
         if isinstance(lot_info, dict):
@@ -671,19 +746,21 @@ def process_zillow_area(area):
         risk = check_location_risk(addr, None, None)
 
         listings.append({
-            "id":            f"zillow_{zpid}",
-            "address":       addr,
-            "price":         price,
-            "beds":          beds,
-            "baths":         baths,
-            "lot_sqft":      lot,
-            "url":           f"https://www.zillow.com/homedetails/{zpid}_zpid/",
-            "source":        "Zillow",
-            "busy_road":     risk["busy_road"],
-            "near_highway":  risk["near_highway"],
-            "highway_roads": risk["highway_roads"],
+            "id":             f"zillow_{zpid}",
+            "address":        addr,
+            "price":          price,
+            "beds":           beds,
+            "baths":          baths,
+            "lot_sqft":       lot,
+            "url":            f"https://www.zillow.com/homedetails/{zpid}_zpid/",
+            "source":         "Zillow",
+            "basement_label": basement_label,
+            "garage_label":   garage_label,
+            "busy_road":      risk["busy_road"],
+            "near_highway":   risk["near_highway"],
+            "highway_roads":  risk["highway_roads"],
         })
-        print(f"    PASS: {addr} {fmt_price(price)}")
+        print(f"    PASS: {addr} {fmt_price(price)} | {basement_label or 'no basement data'} | {garage_label}")
 
     return listings
 
@@ -751,11 +828,13 @@ def merge_into_state(state, fresh_listings):
         if lid in listings:
             existing_status = listings[lid].get("status", "new")
             if existing_status in ("favorite", "think", "deleted"):
-                # Preserve user decision — update price + risk flags silently
-                listings[lid]["price"]         = listing["price"]
-                listings[lid]["busy_road"]     = listing.get("busy_road", False)
-                listings[lid]["near_highway"]  = listing.get("near_highway", False)
-                listings[lid]["highway_roads"] = listing.get("highway_roads", [])
+                # Preserve user decision — update price + risk flags + labels silently
+                listings[lid]["price"]          = listing["price"]
+                listings[lid]["busy_road"]      = listing.get("busy_road", False)
+                listings[lid]["near_highway"]   = listing.get("near_highway", False)
+                listings[lid]["highway_roads"]  = listing.get("highway_roads", [])
+                listings[lid]["basement_label"] = listing.get("basement_label", "")
+                listings[lid]["garage_label"]   = listing.get("garage_label", "🚗 Unknown")
             else:
                 listing["status"]     = "new"
                 listing["first_seen"] = listings[lid].get("first_seen", today)
@@ -778,6 +857,18 @@ def merge_into_state(state, fresh_listings):
 
 def risk_badges(listing):
     badges = ""
+
+    # Basement badge
+    bl = listing.get("basement_label") or ""
+    if bl:
+        if bl.startswith("✅"):
+            badges += f'<span class="badge badge-basement-yes">{bl}</span>'
+        elif bl.startswith("⚠️"):
+            badges += f'<span class="badge badge-basement-maybe">{bl}</span>'
+        elif bl.startswith("❌"):
+            badges += f'<span class="badge badge-basement-no">{bl}</span>'
+
+    # Highway badges
     highway_roads = listing.get("highway_roads") or []
     if highway_roads:
         for road in highway_roads:
@@ -786,7 +877,6 @@ def risk_badges(listing):
             dist_str = f" — {dist} mi" if dist is not None else ""
             badges += f'<span class="badge badge-highway">🛣️ {name}{dist_str}</span>'
     elif listing.get("near_highway"):
-        # Fallback for listings scraped before highway_roads was added
         badges += '<span class="badge badge-highway">🛣️ Near Highway</span>'
     if listing.get("busy_road"):
         badges += '<span class="badge badge-road">⚠️ Busy Road</span>'
@@ -816,26 +906,39 @@ def map_buttons(listing):
 
 
 def listing_card_html(lid, listing, status):
+    # Action buttons — John controls all
     buttons = ""
     for btn_status, label, cls in [
-        ("favorite", "Favorite",       "btn-favorite"),
-        ("think",    "Think About It", "btn-think"),
-        ("deleted",  "Delete",         "btn-delete"),
+        ("favorite", "❤️ Favorite",    "btn-favorite"),
+        ("think",    "🤔 Maybe",        "btn-think"),
+        ("deleted",  "🗑️ Delete",       "btn-delete"),
     ]:
-        active = "active" if status == btn_status else ""
+        active   = "active" if status == btn_status else ""
         buttons += (
             f'<button class="btn {cls} {active}" '
             f'onclick="setStatus(\'{lid}\', \'{btn_status}\')">{label}</button>'
         )
 
-    source_cls = listing.get("source", "").lower()
+    # Christine's heart — only shown when John has favorited
+    christine_fav = listing.get("christine_favorite", False)
+    christine_btn = ""
+    if status == "favorite":
+        c_active = "active" if christine_fav else ""
+        c_icon   = "❤️" if christine_fav else "🤍"
+        christine_btn = (
+            f'<button class="btn btn-christine {c_active}" '
+            f'onclick="toggleChristine(\'{lid}\')">{c_icon} Christine</button>'
+        )
+
+    source_cls   = listing.get("source", "").lower()
     source_badge = f'<span class="source-badge source-{source_cls}">{listing.get("source","")}</span>'
 
-    badges = risk_badges(listing)
-    maps   = map_buttons(listing)
+    badges        = risk_badges(listing)
+    maps          = map_buttons(listing)
+    garage_label  = listing.get("garage_label") or ""
 
     return f"""
-<div class="card" id="card-{lid}" data-status="{status}" data-id="{lid}">
+<div class="card" id="card-{lid}" data-status="{status}" data-id="{lid}" data-christine="{str(christine_fav).lower()}">
   <div class="card-body">
     <h3 class="address"><a href="{listing.get('url','')}" target="_blank">{listing.get('address','')}</a></h3>
     <div class="stats">
@@ -846,8 +949,9 @@ def listing_card_html(lid, listing, status):
       {source_badge}
     </div>
     {f'<div class="badges">{badges}</div>' if badges else ''}
+    {f'<div class="garage-line">{garage_label}</div>' if garage_label else ''}
     <div class="map-btns">{maps}</div>
-    <div class="btn-group">{buttons}</div>
+    <div class="btn-group">{buttons}{christine_btn}</div>
   </div>
 </div>"""
 
@@ -874,13 +978,16 @@ def generate_html(state, new_ids):
         except Exception:
             return False
 
-    groups = {"new_this_week": [], "unreviewed": [], "favorite": [], "think": []}
+    groups = {"new_this_week": [], "unreviewed": [], "favorite": [], "both": [], "think": []}
     for lid, data in listings.items():
         s = data.get("status", "new")
         if s == "deleted":
             continue
         if s == "favorite":
-            groups["favorite"].append((lid, data))
+            if data.get("christine_favorite"):
+                groups["both"].append((lid, data))
+            else:
+                groups["favorite"].append((lid, data))
         elif s == "think":
             groups["think"].append((lid, data))
         else:
@@ -939,10 +1046,11 @@ def generate_html(state, new_ids):
             f'<div class="grid">{html}</div></section>'
         )
 
-    ntw_count      = len(groups["new_this_week"])
-    unrev_count    = len(groups["unreviewed"])
-    fav_count      = len(groups["favorite"])
-    think_count    = len(groups["think"])
+    ntw_count   = len(groups["new_this_week"])
+    unrev_count = len(groups["unreviewed"])
+    fav_count   = len(groups["favorite"])
+    both_count  = len(groups["both"])
+    think_count = len(groups["think"])
 
     ntw_cards = "".join(listing_card_html(lid, d, d.get("status","new")) for lid, d in groups["new_this_week"])
     new_this_week_html = (
@@ -955,8 +1063,9 @@ def generate_html(state, new_ids):
     sections_html = (
         new_this_week_html +
         unreviewed_section_html() +
-        simple_section("Favorites",      "favorite", groups["favorite"], collapsed=True) +
-        simple_section("Think About It", "think",    groups["think"],    collapsed=True)
+        simple_section("⭐ Favorites",   "favorite", groups["favorite"], collapsed=True) +
+        simple_section("💑 Both Love It","both",     groups["both"],     collapsed=True) +
+        simple_section("🤔 Maybe",       "think",    groups["think"],    collapsed=True)
     )
 
     state_json   = json.dumps({k: v for k, v in listings.items() if v.get("status") != "deleted"})
@@ -1017,6 +1126,10 @@ def generate_html(state, new_ids):
   .badge{{font-size:.75rem;font-weight:600;padding:3px 10px;border-radius:4px;}}
   .badge-highway{{background:#fef3c7;color:#92400e;}}
   .badge-road{{background:#fee2e2;color:#991b1b;}}
+  .badge-basement-yes{{background:#dcfce7;color:#166534;}}
+  .badge-basement-maybe{{background:#fef9c3;color:#854d0e;}}
+  .badge-basement-no{{background:#f3f4f6;color:#6b7280;}}
+  .garage-line{{font-size:.8rem;color:var(--muted);margin-bottom:8px;}}
   .map-btns{{display:flex;gap:8px;margin-bottom:10px;}}
   .map-btn{{font-size:.78rem;font-weight:600;padding:5px 12px;border-radius:6px;background:#f0f9f4;color:var(--accent);text-decoration:none;border:1px solid #c6e8d5;}}
   .map-btn:hover{{background:#d1f0e0;}}
@@ -1027,6 +1140,8 @@ def generate_html(state, new_ids):
   .btn-favorite.active{{background:#2d6a4f;}}
   .btn-think.active{{background:#7b68ee;}}
   .btn-delete.active{{background:#c0392b;}}
+  .btn-christine{{border-color:#f9a8d4;color:#9d174d;}}
+  .btn-christine.active{{background:#e11d48;border-color:transparent;color:#fff;}}
   .empty{{color:var(--muted);font-size:.9rem;padding:12px 0;}}
   .hidden{{display:none!important;}}
   /* Toast */
@@ -1035,7 +1150,7 @@ def generate_html(state, new_ids):
   /* Scroll-to-top */
   #scroll-top{{position:fixed;bottom:72px;right:24px;width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;border:none;font-size:1.1rem;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2);z-index:998;}}
   #scroll-top.visible{{display:flex;}}
-  @media(max-width:600px){{main{{padding:16px;}}header{{padding:12px 16px;}}.grid{{grid-template-columns:1fr;}}nav{{padding:0 4px;gap:0;}}nav button{{padding:10px 8px;font-size:.75rem;}}}}
+  @media(max-width:600px){{main{{padding:16px;}}header{{padding:12px 16px;}}.grid{{grid-template-columns:1fr;}}nav{{padding:0 4px;gap:0;}}nav button{{padding:10px 6px;font-size:.72rem;}}}}
 </style>
 </head>
 <body>
@@ -1051,6 +1166,7 @@ def generate_html(state, new_ids):
     <button class="active" onclick="showSection('new-this-week',this)">🆕 This Week (<span id="nav-new-this-week">{ntw_count}</span>)</button>
     <button onclick="showSection('unreviewed',this)">📋 Queue (<span id="nav-unreviewed">{unrev_count}</span>)</button>
     <button onclick="showSection('favorite',this)">⭐ Favorites (<span id="nav-favorite">{fav_count}</span>)</button>
+    <button onclick="showSection('both',this)">💑 (<span id="nav-both">{both_count}</span>)</button>
     <button onclick="showSection('think',this)">🤔 Maybe (<span id="nav-think">{think_count}</span>)</button>
   </nav>
 </div>
@@ -1079,26 +1195,32 @@ function countVisible(sectionId) {{
 
 // Update all nav counts from live DOM
 function updateNavCounts() {{
-  const sections = ["new-this-week", "unreviewed", "favorite", "think"];
+  const sections = ["new-this-week", "unreviewed", "favorite", "both", "think"];
   sections.forEach(key => {{
-    const navEl = document.getElementById("nav-" + key);
+    const navEl   = document.getElementById("nav-" + key);
     const countEl = document.getElementById("count-" + key);
     const n = countVisible(key);
-    if (navEl) navEl.textContent = n;
+    if (navEl)   navEl.textContent   = n;
     if (countEl) countEl.textContent = n;
   }});
 }}
 
 async function setStatus(lid, newStatus) {{
   if (!state[lid]) return;
-  const oldStatus = state[lid].status || "new";
   state[lid].status = newStatus;
+  // Un-Christine when unfavoriting
+  if (newStatus !== "favorite") {{
+    state[lid].christine_favorite = false;
+  }}
   const card = document.getElementById("card-" + lid);
   if (card) {{
     card.dataset.status = newStatus;
-    card.querySelectorAll(".btn").forEach(b => b.classList.remove("active"));
+    card.querySelectorAll(".btn:not(.btn-christine)").forEach(b => b.classList.remove("active"));
     const activeBtn = card.querySelector(".btn-" + (newStatus === "deleted" ? "delete" : newStatus));
     if (activeBtn) activeBtn.classList.add("active");
+    // Show/hide Christine heart based on favorite status
+    const cBtn = card.querySelector(".btn-christine");
+    if (cBtn) cBtn.style.display = newStatus === "favorite" ? "" : "none";
     if (newStatus === "deleted") {{
       card.style.opacity = "0.3";
       setTimeout(() => {{
@@ -1108,6 +1230,36 @@ async function setStatus(lid, newStatus) {{
     }} else {{
       updateNavCounts();
     }}
+  }}
+  showToast("Saving...");
+  await commitStateToGitHub();
+}}
+
+async function toggleChristine(lid) {{
+  if (!state[lid]) return;
+  const current = state[lid].christine_favorite || false;
+  state[lid].christine_favorite = !current;
+  const card = document.getElementById("card-" + lid);
+  if (card) {{
+    card.dataset.christine = String(!current);
+    const cBtn = card.querySelector(".btn-christine");
+    if (cBtn) {{
+      cBtn.classList.toggle("active", !current);
+      cBtn.textContent = (!current ? "❤️" : "🤍") + " Christine";
+    }}
+    // Move card between Favorites and Both Love It sections
+    const favSection  = document.getElementById("section-favorite");
+    const bothSection = document.getElementById("section-both");
+    if (!current) {{
+      // Christine just favorited — move card to Both Love It
+      const bothGrid = bothSection ? bothSection.querySelector(".grid") : null;
+      if (bothGrid) bothGrid.appendChild(card);
+    }} else {{
+      // Christine un-favorited — move card back to Favorites
+      const favGrid = favSection ? favSection.querySelector(".grid") : null;
+      if (favGrid) favGrid.appendChild(card);
+    }}
+    updateNavCounts();
   }}
   showToast("Saving...");
   await commitStateToGitHub();
@@ -1202,3 +1354,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
