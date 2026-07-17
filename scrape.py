@@ -534,6 +534,21 @@ def process_redfin_area(area):
             print(f"    skip (missing IDs): {redfin_fmt_address(r)}")
             continue
 
+        # Pre-detail filters — saves API calls
+        addr_info   = r.get("addressInfo") or {}
+        addr_street = addr_info.get("formattedStreetLine") or ""
+        addr_state  = addr_info.get("state") or addr_info.get("stateCode") or ""
+
+        # NJ-only filter
+        if addr_state and addr_state.upper() != "NJ":
+            print(f"    skip (out of state: {addr_state}): {addr_street}")
+            continue
+
+        # Unit/condo filter — drop addresses with unit indicators
+        if re.search(r'#\s*\d+|\bunit\b|\bapt\b|\bsuite\b|\bste\b', addr_street, re.IGNORECASE):
+            print(f"    skip (unit/condo): {addr_street}")
+            continue
+
         details = redfin_details(property_id, listing_id)
         is_ranch, basement_label, garage_label = redfin_is_ranch(details)
 
@@ -771,6 +786,21 @@ def process_zillow_area(area):
 
         if not zpid:
             print(f"    skip (missing zpid): {zillow_fmt_address(r)}")
+            continue
+
+        # Pre-detail filters — saves API calls
+        addr_info  = r.get("address") or {}
+        z_street   = addr_info.get("streetAddress") or "" if isinstance(addr_info, dict) else ""
+        z_state    = addr_info.get("state") or addr_info.get("state_code") or "" if isinstance(addr_info, dict) else ""
+
+        # NJ-only filter
+        if z_state and z_state.upper() != "NJ":
+            print(f"    skip (out of state: {z_state}): {z_street}")
+            continue
+
+        # Unit/condo filter
+        if re.search(r'#\s*\d+|\bunit\b|\bapt\b|\bsuite\b|\bste\b', z_street, re.IGNORECASE):
+            print(f"    skip (unit/condo): {z_street}")
             continue
 
         details = zillow_details(zpid)
