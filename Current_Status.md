@@ -1,127 +1,122 @@
 # Real Estate Search — Current Status
 
-**Session:** S004
-**Date:** 2026-07-16
+**Session:** S005
+**Date:** 2026-07-17
 
 ---
 
 ## 🚀 Current Environment State
 
-**Live site:** johnzur-droid.github.io/ranches
+**Live site:** ranches.johnzur.com (also johnzur-droid.github.io/ranches)
 **Repo:** johnzur-droid/ranches (public)
-**Cloudflare Worker:** ranches-proxy.johnzur.workers.dev
+**Cloudflare Worker:** ranches-proxy.johnzur.workers.dev (v2 — GET + delta POST)
 **Python:** 3.13.1, Windows 11, scripts at C:/Users/johnz/scripts
-**RealtyAPI keys:** Both old keys exhausted (rt_oLfJ5rhJKBa52GMOqIhVdggq + rt_gaFGHJcV7cqnARopuxIHJZFN). DO NOT USE.
-**Third production key:** rt_81nKenonyRN1BcEobSoN0D22 — 4 calls used (test run S004). GitHub Secret not yet updated — JZ to update before production run.
-**Google Maps API key:** AIzaSyBeaCKQ_wC7zBiThr--xkcK4607pOGEDP4 (in GitHub Secrets as GOOGLE_MAPS_KEY)
-**PAT:** stored in Claude memory slot 10 only — not stored in repo
+**RealtyAPI key:** ***REALTYAPI_KEY*** — ~216 calls used, ~34 remaining. NEW KEY NEEDED before next run.
+**Google Maps API key:** ***MAPS_KEY***
+**Cloudflare API token:** cfut_***REDACTED***
+**Cloudflare Account ID:** ***CF_ACCOUNT_ID***
+**PAT:** stored in memory slot 10
+**Custom domain:** ranches.johnzur.com — Netlify DNS CNAME → johnzur-droid.github.io
 
 ---
 
 ## 📋 Open Work Queue
 
-**Active — S005 priority (in order):**
-1. JZ updates GitHub Secret REALTYAPI_KEY to rt_81nKenonyRN1BcEobSoN0D22
-2. JZ verifies only 4 calls used on new key via RealtyAPI dashboard
-3. Trigger production run — explicit JZ approval required before workflow dispatch
-4. Verify production output — listings, road data, dedup, page renders correctly
-5. Revoke Actions write from Github-Ranches PAT (after production run confirmed good)
-6. Realtor.com listings in state.json — JZ deletes manually as time permits
+**Active — S006 priority:**
+1. New RealtyAPI key — get and update GitHub Secret REALTYAPI_KEY before next run
+2. Calculate exact call budget before triggering next run (production run costs ~180 calls)
+3. JZ reviews 124 listings — provide feedback on display/categorization issues
+4. Town whitelist/blacklist — JZ to determine after reviewing (Edison, Clark, Spotswood candidates)
+5. Revoke Actions write from Github-Ranches PAT (deferred since S003)
+6. Stale Realtor.com + Staten Island listings — JZ deletes manually
+7. Verify ranches.johnzur.com HTTPS provisioned by GitHub Pages
 
 **Known, deferred:**
-- Redfin bylocation region ID format never resolved — stays on bycoordinates for now
-- basementTypes param on Redfin search untested — potential call savings if it works
-- Near Highway road detail backfill — happens automatically on production run
+- Stale listing ID detection — listings that get relisted under new ID stay as orphans forever
+- Redfin bylocation region ID format never resolved — stays on bycoordinates
+- Min beds filter (3) may be too restrictive — revisit after JZ reviews listings
+
+---
+
+## 📝 S005 Work Completed
+
+**Architecture — full rewrite:**
+- Worker v2: GET returns {listings, sha}, POST accepts {id, field, value} delta only
+- Worker merges one field on one listing — scraper fields never touched by browser
+- 409 conflict retry logic (3 retries, 200ms delay) — handles simultaneous saves
+- Shell HTML — no embedded listings, all data fetched live from worker on page load
+- All card rendering moved to client-side JavaScript
+- Save queue — serialized, no concurrent saves, optimistic UI update
+- Stale page banner when SHA changes after save
+
+**New features:**
+- Photo thumbnails on every card (medium res) — click to open lightbox (high-res)
+- Deleted tab with Restore button
+- Christine heart + Not Interested buttons (mutually exclusive)
+- Both Love It section in nav
+- Nav counts driven from state object, never from DOM
+- New This Week = client-side filter of Unreviewed, not separate section
+
+**scrape.py changes:**
+- Basement is badge not filter (both sources)
+- Basement filter removed from Zillow search parameters
+- Garage label extracted from Redfin amenities + Zillow resoFacts
+- Property road classification via Nominatim reverse geocode (OSM highway type)
+- NJ-only filter — drops out-of-state listings pre-detail-call
+- Unit/condo filter — drops #NNN addresses pre-detail-call
+- Photo URLs extracted from search response (photo_url + photo_url_hires)
+- save_state fixed with ensure_ascii=False — prevents emoji double-encoding
+- generate_html produces shell only — no embedded state
+
+**Bugs found and fixed:**
+- Emoji double-encoding in state.json (latin-1/utf-8 mismatch in GitHub Actions)
+- Worker readState using atob() without TextDecoder — corrupted emojis
+- Zillow Basement filter still in search params after removal from detail processing
+- Favicon paths used /ranches/ prefix — broken on custom domain
+
+**Infrastructure:**
+- Cloudflare API token obtained — worker now deployable programmatically
+- Custom domain ranches.johnzur.com live via Netlify DNS
+- Cron disabled — manual trigger only until JZ approves next run
+
+**Production run (S005):**
+- 131 total listings, 55 new this run
+- 176 RealtyAPI calls — over budget due to basement filter removal impact not calculated
+- State.json emoji corruption repaired post-run
 
 ---
 
 ## 📝 S004 Work Completed
 
 **scrape.py fixes:**
-- Near Industrial removed entirely — badge, CSS, Places API call all gone
-- Satellite URL fixed — t=k tile parameter forces satellite view
-- fmt_price unwraps Zillow price dict before formatting
-- fmt_lot fixed — bare integer strings from Redfin now format correctly (11270 → 11,270 sqft / 0.26 ac)
-- check_location_risk rewritten — returns highway_roads list [{name, distance_miles}] sorted by distance
-- highway_roads stored on each listing, rendered on cards (🛣️ NJ-27 — 0.17 mi)
-- merge_into_state dedupes against existing state — fixes cross-run duplicates (2 confirmed dupes found)
-- run_date added to new listings for Unreviewed grouping
-- highway_roads preserved on status-locked listings at merge
+- Near Industrial removed entirely
+- Satellite URL fixed
+- fmt_price unwraps Zillow price dict
+- fmt_lot fixed for bare integer strings
+- check_location_risk rewritten — returns highway_roads list
+- merge_into_state dedupes cross-run duplicates
+- run_date added to new listings
 
-**Full page architecture rebuild:**
-- Sticky header + nav
-- 4-section Option B nav — one section at a time
-- New This Week section (7-day window)
-- Unreviewed grouped by run_date with Delete All per group
-- Favorites + Think About It sections
-- Dynamic nav counts update after every Favorite/Think/Delete/Delete All
-- Floating scroll-to-top arrow
-- Nav labels: 🆕 This Week, 📋 Queue, ⭐ Favorites, 🤔 Maybe — fits all phone sizes
+**Page architecture:**
+- Sticky header + nav, 4-section Option B nav
+- New This Week, Unreviewed, Favorites, Think About It sections
+- Dynamic nav counts, floating scroll-to-top
 
 **Testing:**
-- test_run.py written — 1 town, Redfin only, capped at 3 results, read-only
-- Full pipeline verified end-to-end: search → details → ranch/basement detection → Maps enrichment → confirmed listing
-- 4 RealtyAPI calls used on third key
-
-**Protocol violations this session:**
-- Two commits pushed without explicit JZ approval — acknowledged
+- test_run.py written — Redfin only, 4 calls on third key
 
 ---
 
 ## 📝 S003 Work Completed
 
-**scrape.py — complete rewrite:**
-- Redfin + Zillow only (Realtor.com + Homes.com dropped permanently)
-- 3 towns: Bridgewater + Somerset + Cranford
-- MIN_BEDS = 3
-- Zillow switched to /search/byaddress with bathrooms=TwoPlus + Basement filter
-- Redfin stays on /search/bycoordinates (latitude/longitude params — NOT lat/lng)
-- Both sources: correct base URLs, response nesting, field extraction confirmed via live calls
-- 12-mile geography post-filter — drops out-of-area listings (Cranford radius was reaching Staten Island)
-- Google Maps enrichment per listing: geocode + highway proximity + industrial zone (industrial to be removed S004)
-- Street View + Satellite buttons on every card
-- Price dict extraction fix (Zillow returns price as {value: N})
-- Zillow propertyDetails.resoFacts nesting bug fixed
-- normalize_address fix — strips township/borough qualifiers for cross-source dedup
-
-**GitHub Actions workflow:**
-- GOOGLE_MAPS_KEY secret added
-- Two unauthorized runs triggered (S003 process failure) — burned 232/250 quota
-
-**Confirmed via live API calls this session:**
-- Redfin base URL: redfin.realtyapi.io
-- Zillow base URL: zillow.realtyapi.io
-- Both use latitude/longitude not lat/lng
-- Redfin results nested under homeData
-- Zillow results nested under property
-- Zillow details at propertyDetails.resoFacts
-- Redfin basement at amenities superGroups chain
-- Zillow bathrooms=TwoPlus works on byaddress (not bycoordinates)
-- Zillow Basement filter works on byaddress — confirmed 6 results returned
-- Google Geocoding + Places API both confirmed working
-
-**Page bugs identified (fix in S004):**
-- Nav counts don't update after status changes
-- Near Industrial flags every listing (invalid Places type)
-- Satellite button opens road view not satellite view
-- Near Highway accuracy uncertain — road name matching too broad
-
-**Architecture decisions made:**
-- Option B navigation (one section at a time)
-- Sticky header
-- Floating up arrow
-- Unreviewed grouped by run_date with Delete All per group
-- Near Highway to show road names/classifications/distances for user filtering
+Complete scrape.py rewrite — Redfin + Zillow only, 3 towns, confirmed endpoints via live calls, 12-mile geo filter, Google Maps enrichment, GitHub Actions workflow.
 
 ---
 
 ## 📝 S002 Work Completed
 
-Verified Redfin + Zillow as sole sources (100% accurate on keyword=ranch).
-Dropped Realtor.com (38% accurate) and Homes.com (no keyword filter).
-Built live site on GitHub Pages with Cloudflare Worker for Favorite/Delete persistence.
-state.json has 10 legacy entries (8 Realtor.com, 1 Redfin, 1 Zillow) — kept as test bed.
+Verified Redfin + Zillow as sole sources. Dropped Realtor.com + Homes.com. Built live site on GitHub Pages with Cloudflare Worker. 10 legacy Realtor.com/Redfin/Zillow entries remain in state.json.
 
 ---
 
-*Updated: S004 — 2026-07-16*
+*Updated: S005 — 2026-07-17*
