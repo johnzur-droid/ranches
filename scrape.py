@@ -1134,7 +1134,8 @@ def _shell_html(run_time, worker_url):
   .btn-favorite.active{{background:#2d6a4f;}}
   .btn-think.active{{background:#7b68ee;}}
   .btn-delete.active{{background:#c0392b;}}
-  .btn-christine{{border-color:#f9a8d4;color:#9d174d;}}
+  .btn-restore{{border-color:#86efac;color:#166534;}}
+  .btn-restore:hover{{background:#dcfce7;}}
   .btn-christine.active{{background:#e11d48;border-color:transparent;color:#fff;}}
   .btn-christine-pass{{border-color:#d1d5db;color:#6b7280;}}
   .btn-christine-pass.active{{background:#6b7280;border-color:transparent;color:#fff;}}
@@ -1164,6 +1165,7 @@ def _shell_html(run_time, worker_url):
     <button onclick="showTab('favorite',this)">⭐ Favorites (<span id="nav-favorite">0</span>)</button>
     <button onclick="showTab('both',this)">💑 (<span id="nav-both">0</span>)</button>
     <button onclick="showTab('think',this)">🤔 Maybe (<span id="nav-think">0</span>)</button>
+    <button onclick="showTab('deleted',this)">🗑️ Deleted (<span id="nav-deleted">0</span>)</button>
   </nav>
 </div>
 <div id="error-banner"></div>
@@ -1174,6 +1176,7 @@ def _shell_html(run_time, worker_url):
   <div id="tab-favorite"      class="tab-pane hidden"></div>
   <div id="tab-both"          class="tab-pane hidden"></div>
   <div id="tab-think"         class="tab-pane hidden"></div>
+  <div id="tab-deleted"       class="tab-pane hidden"></div>
 </main>
 <div id="toast"></div>
 <button id="scroll-top" onclick="window.scrollTo({{top:0,behavior:'smooth'}})">↑</button>
@@ -1241,10 +1244,13 @@ function isNewThisWeek(listing) {{
 }}
 
 function groupByStatus() {{
-  const groups = {{unreviewed:[], favorite:[], both:[], think:[]}};
+  const groups = {{unreviewed:[], favorite:[], both:[], think:[], deleted:[]}};
   for (const [id, L] of Object.entries(state)) {{
     const s = L.status || "new";
-    if (s === "deleted") continue;
+    if (s === "deleted") {{
+      groups.deleted.push([id,L]);
+      continue;
+    }}
     if (s === "favorite") {{
       if (L.christine_favorite) groups.both.push([id,L]);
       else groups.favorite.push([id,L]);
@@ -1334,6 +1340,7 @@ function renderCard(id, L) {{
       <button class="btn btn-favorite${{favActive}}"  onclick="setStatus('${{id}}','favorite')">❤️ Favorite</button>
       <button class="btn btn-think${{thinkActive}}"   onclick="setStatus('${{id}}','think')">🤔 Maybe</button>
       <button class="btn btn-delete${{delActive}}"    onclick="setStatus('${{id}}','deleted')">🗑️ Delete</button>
+      ${{status === "deleted" ? `<button class="btn btn-restore" onclick="restoreListing('${{id}}')">↩️ Restore</button>` : ""}}
       ${{christineBtns}}
     </div>
   </div>
@@ -1382,6 +1389,9 @@ function renderAll() {{
   // Tab: Maybe
   renderSimpleTab("tab-think", groups.think, "Nothing in Maybe yet.");
 
+  // Tab: Deleted
+  renderSimpleTab("tab-deleted", groups.deleted, "No deleted listings.");
+
   updateNavCounts(groups, newThisWeek.length);
 }}
 
@@ -1414,9 +1424,19 @@ function updateNavCounts(groups, ntwCount) {{
   document.getElementById("nav-favorite").textContent      = groups.favorite.length;
   document.getElementById("nav-both").textContent          = groups.both.length;
   document.getElementById("nav-think").textContent         = groups.think.length;
+  document.getElementById("nav-deleted").textContent       = groups.deleted.length;
 }}
 
 // ── Button handlers ───────────────────────────────────────────────────────────
+async function restoreListing(id) {{
+  if (!state[id]) return;
+  state[id].status        = "new";
+  state[id].last_modified = new Date().toISOString();
+  renderAll();
+  showTab(activeTab, document.querySelector("nav button.active"));
+  await enqueueSave(id, "status", "new");
+}}
+
 async function setStatus(id, newStatus) {{
   if (!state[id]) return;
   const L = state[id];
@@ -1426,8 +1446,7 @@ async function setStatus(id, newStatus) {{
   const effectiveStatus = (oldStatus === newStatus && newStatus !== "deleted")
     ? "new" : newStatus;
 
-  // Delete is one-way — guard against double-click
-  if (oldStatus === "deleted") return;
+  // Delete is one-way from the main buttons — use Restore button in Deleted tab to undo
 
   // Apply to state
   L.status = effectiveStatus;
