@@ -31,9 +31,11 @@
       "baths": "2",
       "lot_sqft": 196020,
       "url": "https://www.realtor.com/realestateandhomes-detail/1813-Washington-Valley-Rd_Martinsville_NJ_08836_M57168-17257",
-      "status": "new",
+      "status": "deleted",
       "first_seen": "2026-07-15",
-      "source": "Realtor.com"
+      "source": "Realtor.com",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "realtor_6811292095": {
       "address": "487 Knollwood Dr Bridgewater Twp NJ 08807",
