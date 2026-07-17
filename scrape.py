@@ -605,9 +605,9 @@ def zillow_search(area):
     """
     Zillow /search/byaddress — confirmed working S003.
     bathrooms=TwoPlus confirmed working on byaddress (not bycoordinates).
-    Basement filter confirmed working S003 — 6 results returned.
     listing_status=For_Sale (not status=forSale) — confirmed S003.
     bed_min=3 — updated S003 per JZ requirement.
+    Basement filter removed S005 — basement is a badge not a hard filter.
     """
     print(f"  Zillow search: {area['name']}...")
     data = api_get(ZILLOW_BASE, "/search/byaddress", {
@@ -618,7 +618,6 @@ def zillow_search(area):
         "bathrooms":        "TwoPlus",
         "home_type":        "Houses",
         "list_price_range": f"min:0, max:{MAX_PRICE}",
-        "Basement":         "Yes_Finished,Yes_Unfinished,Yes_Both",
     })
     if not data:
         return []
