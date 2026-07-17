@@ -156,13 +156,25 @@
         <label class="filter-check"><input type="checkbox" value="no"  onchange="applyFilters()"> No Garage</label>
       </div>
     </div>
-    <!-- Road -->
+    <!-- Road Type -->
     <div class="filter-group">
-      <span class="filter-label">Road</span>
+      <span class="filter-label">Road Type</span>
       <div class="filter-checks" id="fg-road">
-        <label class="filter-check"><input type="checkbox" value="clean"   onchange="applyFilters()"> 🏘️ Clean</label>
-        <label class="filter-check"><input type="checkbox" value="busy"    onchange="applyFilters()"> ⚠️ Busy</label>
-        <label class="filter-check"><input type="checkbox" value="highway" onchange="applyFilters()"> 🛣️ Near Hwy</label>
+        <label class="filter-check"><input type="checkbox" value="residential" onchange="applyFilters()"> 🏘️ Residential</label>
+        <label class="filter-check"><input type="checkbox" value="minor"       onchange="applyFilters()"> 🟡 Minor Through</label>
+        <label class="filter-check"><input type="checkbox" value="secondary"   onchange="applyFilters()"> 🟠 Secondary</label>
+        <label class="filter-check"><input type="checkbox" value="primary"     onchange="applyFilters()"> 🔴 Primary Arterial</label>
+      </div>
+    </div>
+    <!-- Near Highway -->
+    <div class="filter-group">
+      <span class="filter-label">Near Highway</span>
+      <div class="filter-select">
+        <select id="f-highway" onchange="applyFilters()">
+          <option value="">Any</option>
+          <option value="yes">🛣️ Near Highway</option>
+          <option value="no">✅ Not Near Highway</option>
+        </select>
       </div>
     </div>
     <span id="filter-status"></span>
@@ -330,7 +342,7 @@ function renderCard(id, L) {
     ${badges ? `<div class="badges">${badges}</div>` : ""}
     ${L.garage_label  ? `<div class="info-line">${L.garage_label}</div>`  : ""}
     ${L.property_road ? `<div class="info-line">${L.property_road}</div>` : ""}
-    ${(()=>{ const hw=(L.highway_roads||[]).filter(r=>r.distance_miles!=null&&r.distance_miles<=0.25); return hw.length ? `<div class="info-line hw-line">🛣️ Near Highway: ${hw.map(r=>r.name+' — '+r.distance_miles+' mi').join(', ')}</div>` : ''; })()}
+    ${(()=>{ const hw=(L.highway_roads||[]).filter(r=>r.distance_miles!=null&&r.distance_miles<=0.25); return hw.length ? `<div class="info-line hw-line">🛣️ Near Highway: ${hw.map(r=>r.name+' — '+r.distance_miles+' mi').join(', ')</div>` : ''; })()}
     ${passInd}
     <div class="map-btns">
       <a href="${svUrl}"  target="_blank" class="map-btn">📷 Street View</a>
@@ -674,7 +686,7 @@ function getFilters() {
     basement: checked("fg-basement"),
     garage:   checked("fg-garage"),
     road:     checked("fg-road"),
-    highway:  checked("fg-highway"),
+    highway:  document.getElementById("f-highway").value,
   };
 }
 
@@ -696,12 +708,9 @@ function passesFilters(L, f) {
   if (f.garage.length > 0 && !f.garage.includes(garageClass(L.garage_label))) return false;
   // Road type
   if (f.road.length > 0 && !f.road.includes(roadClass(L))) return false;
-  // Near highway
-  if (f.highway.length > 0) {
-    const near = isNearHighway(L);
-    if (f.highway.includes("yes") && !f.highway.includes("no") && !near) return false;
-    if (f.highway.includes("no") && !f.highway.includes("yes") && near) return false;
-  }
+  // Near highway — binary select
+  if (f.highway === "yes" && !isNearHighway(L)) return false;
+  if (f.highway === "no"  &&  isNearHighway(L)) return false;
   return true;
 }
 
@@ -712,7 +721,7 @@ function applyFilters() {
   activeFilters = getFilters();
   const hasAny = activeFilters.towns.length || activeFilters.priceMin || activeFilters.priceMax ||
                  activeFilters.lotMin || activeFilters.lotMax || activeFilters.basement.length ||
-                 activeFilters.garage.length || activeFilters.road.length || activeFilters.highway.length;
+                 activeFilters.garage.length || activeFilters.road.length || activeFilters.highway;
   document.getElementById("filter-toggle").classList.toggle("active", !!hasAny);
   renderAll();
   showTab(activeTab, document.querySelector("nav button.active"));
@@ -724,6 +733,7 @@ function resetFilters() {
   document.getElementById("f-price-max").value = "";
   document.getElementById("f-lot-min").value   = "";
   document.getElementById("f-lot-max").value   = "";
+  document.getElementById("f-highway").value   = "";
   activeFilters = null;
   document.getElementById("filter-toggle").classList.remove("active");
   renderAll();
