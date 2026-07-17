@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ranch Finder — User Guide</title>
+<style>
+  :root{--bg:#f7f6f3;--surface:#fff;--border:#e2e0db;--text:#1a1a1a;--muted:#6b6b6b;--accent:#2d6a4f;--radius:10px;--shadow:0 2px 8px rgba(0,0,0,.08);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;}
+  a{color:var(--accent);}
+
+  /* ── Header ── */
+  .cover{background:var(--accent);color:#fff;padding:48px 32px 40px;text-align:center;}
+  .cover img{width:80px;height:80px;margin-bottom:16px;border-radius:14px;box-shadow:0 4px 16px rgba(0,0,0,.25);}
+  .cover h1{font-size:2rem;font-weight:800;margin-bottom:6px;}
+  .cover .sub{font-size:1rem;opacity:.8;}
+  .cover .meta{font-size:.82rem;opacity:.6;margin-top:8px;}
+
+  /* ── Nav ── */
+  .toc{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;gap:0;overflow-x:auto;position:sticky;top:0;z-index:100;}
+  .toc a{display:block;padding:12px 14px;font-size:.82rem;font-weight:600;color:var(--muted);text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent;}
+  .toc a:hover{color:var(--accent);border-bottom-color:var(--accent);}
+
+  /* ── Layout ── */
+  main{max-width:900px;margin:0 auto;padding:40px 32px;}
+  section{margin-bottom:56px;}
+  h2{font-size:1.4rem;font-weight:800;color:var(--accent);margin-bottom:4px;padding-top:8px;}
+  h3{font-size:1.05rem;font-weight:700;margin:28px 0 10px;}
+  p{margin-bottom:14px;color:var(--text);}
+  ul,ol{padding-left:20px;margin-bottom:14px;}
+  li{margin-bottom:6px;}
+  .rule{border:none;border-top:1px solid var(--border);margin:16px 0 24px;}
+
+  /* ── Tables ── */
+  table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:.88rem;box-shadow:var(--shadow);border-radius:var(--radius);overflow:hidden;}
+  th{background:var(--accent);color:#fff;padding:10px 14px;text-align:left;font-weight:700;}
+  td{padding:9px 14px;border-bottom:1px solid var(--border);}
+  tr:last-child td{border-bottom:none;}
+  tr:nth-child(even) td{background:#fafaf8;}
+  .field-name{font-weight:700;white-space:nowrap;}
+  .badge{display:inline-block;font-size:.75rem;font-weight:700;padding:2px 8px;border-radius:4px;margin-right:4px;}
+  .badge-green{background:#dcfce7;color:#166534;}
+  .badge-yellow{background:#fef9c3;color:#854d0e;}
+  .badge-gray{background:#f3f4f6;color:#6b7280;}
+  .badge-red{background:#fee2e2;color:#991b1b;}
+  .badge-blue{background:#e0f2fe;color:#0c4a6e;}
+
+  /* ── Callout boxes ── */
+  .callout{border-left:4px solid var(--accent);background:#f0f9f4;padding:14px 18px;border-radius:0 8px 8px 0;margin-bottom:20px;}
+  .callout.warn{border-left-color:#f59e0b;background:#fffbeb;}
+  .callout.tip{border-left-color:#3b82f6;background:#eff6ff;}
+  .callout strong{display:block;margin-bottom:4px;}
+
+  /* ── Architecture diagram ── */
+  .arch{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px;font-size:.85rem;}
+  .arch-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+  .arch-box{background:var(--accent);color:#fff;padding:8px 16px;border-radius:8px;font-weight:700;font-size:.82rem;white-space:nowrap;}
+  .arch-box.gray{background:#6b6b6b;}
+  .arch-box.gold{background:#92400e;}
+  .arch-box.blue{background:#1d4ed8;}
+  .arch-box.red{background:#991b1b;}
+  .arch-arrow{color:var(--muted);font-size:1.1rem;}
+  .arch-label{color:var(--muted);font-size:.78rem;}
+
+  /* ── FAQ ── */
+  .faq-q{font-weight:700;margin-bottom:4px;color:var(--accent);}
+  .faq-a{margin-bottom:20px;}
+
+  /* ── Footer ── */
+  footer{text-align:center;padding:32px;font-size:.82rem;color:var(--muted);border-top:1px solid var(--border);}
+
+  @media(max-width:600px){
+    main{padding:20px 16px;}
+    .cover{padding:32px 16px;}
+    .toc{padding:0 8px;}
+    .toc a{padding:10px 8px;font-size:.75rem;}
+  }
+</style>
+</head>
+<body>
+
+<!-- Cover -->
+<div class="cover">
+  <img src="favicon-512.png" alt="Ranch Finder">
+  <h1>Ranch Finder</h1>
+  <div class="sub">User Guide</div>
+  <div class="meta">ranches.johnzur.com &nbsp;·&nbsp; July 2026</div>
+</div>
+
+<!-- Nav -->
+<nav class="toc">
+  <a href="#overview">Overview</a>
+  <a href="#using">Using the App</a>
+  <a href="#cards">Listing Cards</a>
+  <a href="#filters">Filters</a>
+  <a href="#architecture">Architecture</a>
+  <a href="#faq">FAQ</a>
+</nav>
+
+<main>
+
+<!-- ── 1. OVERVIEW ──────────────────────────────────────────────────────── -->
+<section id="overview">
+  <h2>1. Overview</h2>
+  <hr class="rule">
+
+  <h3>Background & Genesis</h3>
+  <p>Finding a ranch-style home with a basement on any major real estate platform — Zillow, Redfin, Realtor.com — is an exercise in frustration. These platforms are built for broad search and visual browsing. Their filtering systems cannot reliably isolate ranch-style architecture. The word "ranch" is inconsistently tagged, mislabeled, or omitted entirely by listing agents. Searching for ranches on these sites returns two-story colonials, split-levels, and cape cods. There is no filter for "has basement." There is no way to combine both criteria reliably.</p>
+  <p>Ranch Finder solves this by going directly to the data. It queries Redfin and Zillow through a professional real estate API, validates each listing against both structured property fields and natural language description text, and eliminates everything that doesn't meet the criteria. What remains is a curated, verified list of ranch-style homes with basements — updated weekly, delivered to a private web page.</p>
+
+  <h3>What It Does</h3>
+  <ul>
+    <li>Searches Redfin and Zillow across three NJ target areas: Bridgewater, Somerset, and Cranford — each with a 10-mile radius</li>
+    <li>Filters to single-family ranch homes with basements, minimum 3 beds / 2 baths, maximum $1,000,000</li>
+    <li>Enriches each listing with road classification, highway proximity (within ¼ mile), garage info, and Google Maps links</li>
+    <li>Deduplicates across sources — the same address from Redfin and Zillow appears only once</li>
+    <li>Presents results in a private web page with tabs, photos, and real-time filters</li>
+    <li>Saves review decisions (Favorite, Maybe, Delete) instantly — no account required</li>
+  </ul>
+
+  <h3>The Christine Workflow</h3>
+  <div class="callout">
+    <strong>Ranch Finder is designed for asynchronous collaboration.</strong>
+    John reviews the full queue and marks homes he likes as ❤️ Favorite. Christine then reviews only the Favorites tab and adds her own vote — ❤️ interested or 👎 not interested. Homes where both said yes appear in the 💑 Both tab — the short list for scheduling viewings. No phone calls, no forwarded links, no "did you see the one on Cambridge Lane?"
+  </div>
+</section>
+
+<!-- ── 2. USING THE APP ──────────────────────────────────────────────────── -->
+<section id="using">
+  <h2>2. Using the App</h2>
+  <hr class="rule">
+
+  <h3>Accessing the App</h3>
+  <p><strong>URL:</strong> <a href="https://ranches.johnzur.com" target="_blank">ranches.johnzur.com</a> — open in any browser on desktop or mobile. No login required. The page loads live data on every visit.</p>
+
+  <h3>Navigation Tabs</h3>
+  <table>
+    <tr><th>Tab</th><th>What It Shows</th></tr>
+    <tr><td class="field-name">🆕 This Week</td><td>Listings first seen in the past 7 days. Start here after a new scrape run.</td></tr>
+    <tr><td class="field-name">📋 Queue</td><td>All unreviewed listings grouped by scrape date. Your main working area.</td></tr>
+    <tr><td class="field-name">⭐ Favorites</td><td>Homes John has marked as Favorite. Christine works from this tab.</td></tr>
+    <tr><td class="field-name">💑 Both</td><td>Homes where both John and Christine said yes. The viewing short list.</td></tr>
+    <tr><td class="field-name">🤔 Maybe</td><td>Homes flagged for a second look. Not deleted, not favorited yet.</td></tr>
+    <tr><td class="field-name">🗑️ Deleted</td><td>Dismissed listings. Always shown unfiltered. Restorable via the Restore button.</td></tr>
+  </table>
+
+  <h3>Action Buttons</h3>
+  <table>
+    <tr><th>Button</th><th>What It Does</th></tr>
+    <tr><td class="field-name">❤️ Favorite</td><td>Marks the home as John's favorite. Makes it visible to Christine in the Favorites tab.</td></tr>
+    <tr><td class="field-name">🤔 Maybe</td><td>Parks the listing for a second look without committing either way.</td></tr>
+    <tr><td class="field-name">🗑️ Delete</td><td>Dismisses the listing. One-way from the main tabs — use Restore to undo.</td></tr>
+    <tr><td class="field-name">↩️ Restore</td><td>Available in Deleted tab only. Returns the listing to the Queue.</td></tr>
+    <tr><td class="field-name">❤️ Christine</td><td>Christine's yes vote. Only available after John has favorited the listing.</td></tr>
+    <tr><td class="field-name">👎 Not Interested</td><td>Christine's no vote. Mutually exclusive with ❤️ Christine.</td></tr>
+  </table>
+  <p>All actions save instantly. A <strong>"Saved ✓"</strong> toast confirms each write. Tapping an active button again (e.g. tapping ❤️ Favorite on an already-favorited card) returns the listing to unreviewed.</p>
+</section>
+
+<!-- ── 3. LISTING CARDS ──────────────────────────────────────────────────── -->
+<section id="cards">
+  <h2>3. Listing Cards</h2>
+  <hr class="rule">
+
+  <h3>Card Fields</h3>
+  <table>
+    <tr><th>Field</th><th>Description</th></tr>
+    <tr><td class="field-name">Photo</td><td>Thumbnail from the listing. Tap to open full-size photo in a lightbox.</td></tr>
+    <tr><td class="field-name">Address</td><td>Full street address. Tapping the address opens the listing on Redfin or Zillow.</td></tr>
+    <tr><td class="field-name">Price</td><td>Listed asking price in dollars.</td></tr>
+    <tr><td class="field-name">Beds / Baths</td><td>Bedroom and bathroom count from the listing data.</td></tr>
+    <tr><td class="field-name">Lot size</td><td>Displayed as square feet and acres, e.g. "32,234 sqft (0.74 ac)".</td></tr>
+    <tr><td class="field-name">Source badge</td><td><span class="badge badge-red">Redfin</span> or <span class="badge badge-yellow">Zillow</span> — which platform the listing came from.</td></tr>
+    <tr><td class="field-name">Basement badge</td><td>
+      <span class="badge badge-green">✅ Basement</span> Confirmed via structured API field.<br>
+      <span class="badge badge-yellow">⚠️ Basement?</span> Found only in description text — verify before visiting.<br>
+      <span class="badge badge-gray">❌ No Basement</span> Not found in either source.
+    </td></tr>
+    <tr><td class="field-name">Garage</td><td>Garage type and car count if available, e.g. "🚗 2-car garage (Attached Garage)".</td></tr>
+    <tr><td class="field-name">Road type</td><td>Classification of the street the property sits on (see Road Types below).</td></tr>
+    <tr><td class="field-name">🛣️ Near Highway</td><td>Only shown when a highway is within ¼ mile. Shows the highway name and exact distance in miles.</td></tr>
+    <tr><td class="field-name">📷 Street View</td><td>Opens Google Street View for the address in a new tab.</td></tr>
+    <tr><td class="field-name">🛰️ Satellite</td><td>Opens Google Maps satellite view for the address in a new tab.</td></tr>
+  </table>
+
+  <h3>Road Type Labels</h3>
+  <table>
+    <tr><th>Label</th><th>What It Means</th></tr>
+    <tr><td class="field-name">🏘️ Residential Street</td><td>A local neighborhood road with low through-traffic. The ideal situation.</td></tr>
+    <tr><td class="field-name">🟡 Minor Through-Road</td><td>Carries some through-traffic but primarily serves local areas. Generally acceptable.</td></tr>
+    <tr><td class="field-name">🟠 Secondary Road</td><td>A collector or county road with moderate traffic volume. Worth checking on Street View.</td></tr>
+    <tr><td class="field-name">🔴 Primary Arterial</td><td>A major road with high traffic. Expect noise and volume — factor this in carefully.</td></tr>
+  </table>
+
+  <div class="callout tip">
+    <strong>Tip: Near Highway vs. Road Type</strong>
+    These are two separate things. Road Type describes the street the house sits <em>on</em>. Near Highway flags a major highway (interstate, parkway, turnpike) within ¼ mile — even if the house itself is on a quiet residential street. Both matter independently.
+  </div>
+</section>
+
+<!-- ── 4. FILTERS ──────────────────────────────────────────────────────────── -->
+<section id="filters">
+  <h2>4. Filters</h2>
+  <hr class="rule">
+
+  <p>Tap <strong>🔍 Filter</strong> in the nav bar to open the filter panel. Filters apply across all tabs simultaneously (except Deleted). When filters are active, the 🔍 button turns green and a count shows how many listings are visible vs. total.</p>
+
+  <div class="callout warn">
+    <strong>Filters are AND logic.</strong> Every active filter must be satisfied. Selecting multiple criteria narrows results — it doesn't expand them.
+  </div>
+
+  <h3>Filter Reference</h3>
+  <table>
+    <tr><th>Filter</th><th>How to Use</th></tr>
+    <tr>
+      <td class="field-name">Town</td>
+      <td>Check one or more town names. Only listings from checked towns appear. The town list is populated dynamically from your actual data — every town present in the current listings is shown.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Price</td>
+      <td>
+        <strong>Format: whole dollars, no $ sign, no commas.</strong><br>
+        Example: enter <code>400000</code> for $400,000 minimum, <code>800000</code> for $800,000 maximum.<br>
+        Leave Min blank for no lower limit. Leave Max blank for no upper limit.
+      </td>
+    </tr>
+    <tr>
+      <td class="field-name">Lot (acres)</td>
+      <td>
+        <strong>Format: decimal acres.</strong><br>
+        Examples: <code>0.25</code> = quarter acre &nbsp;|&nbsp; <code>0.5</code> = half acre &nbsp;|&nbsp; <code>1.0</code> = one acre &nbsp;|&nbsp; <code>2.0</code> = two acres<br>
+        The app stores lot size in square feet internally and converts to acres for comparison. Leave either blank for no limit.
+      </td>
+    </tr>
+    <tr>
+      <td class="field-name">Basement</td>
+      <td>Check one or more: <strong>✅ Confirmed</strong>, <strong>⚠️ Unconfirmed</strong>, <strong>❌ None</strong>. To see only high-confidence basements, check ✅ Confirmed only.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Garage</td>
+      <td>Check <strong>Has Garage</strong>, <strong>No Garage</strong>, or both (= no filter on garage).</td>
+    </tr>
+    <tr>
+      <td class="field-name">Road Type</td>
+      <td>Check any combination of the four road classifications. Only listings on a checked road type appear. Checking all four is the same as no filter.</td>
+    </tr>
+    <tr>
+      <td class="field-name">Near Highway</td>
+      <td>
+        Dropdown with three options:<br>
+        <strong>Any</strong> (default) — no highway filter applied.<br>
+        <strong>🛣️ Near Highway</strong> — show only listings within ¼ mile of a highway.<br>
+        <strong>✅ Not Near Highway</strong> — exclude any listing within ¼ mile of a highway.<br>
+        This is a strict binary — a listing is either within ¼ mile or it isn't.
+      </td>
+    </tr>
+  </table>
+
+  <p>Tap <strong>Reset</strong> to clear all filters at once.</p>
+</section>
+
+<!-- ── 5. ARCHITECTURE ─────────────────────────────────────────────────────── -->
+<section id="architecture">
+  <h2>5. Architecture</h2>
+  <hr class="rule">
+
+  <p>Ranch Finder is a serverless, zero-cost system. There is no application server, no database, no hosting bill. All state lives in a single JSON file in a GitHub repository.</p>
+
+  <h3>Data Flow — Scrape Run</h3>
+  <div class="arch">
+    <div class="arch-row">
+      <div class="arch-box gray">GitHub Actions</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box">scrape.py</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box red">RealtyAPI</div>
+      <div class="arch-label">(Redfin + Zillow search &amp; details calls)</div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-box">scrape.py</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box gold">Google Maps API</div>
+      <div class="arch-label">(geocode, road classification, highway proximity)</div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-box">scrape.py</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box gray">state.json + index.html</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box blue">GitHub repo (git push)</div>
+    </div>
+  </div>
+
+  <h3>Data Flow — Browser Session</h3>
+  <div class="arch">
+    <div class="arch-row">
+      <div class="arch-box gray">Browser</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box">GitHub Pages</div>
+      <div class="arch-label">(loads index.html from ranches.johnzur.com)</div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-box gray">Browser</div>
+      <div class="arch-arrow">GET →</div>
+      <div class="arch-box gold">Cloudflare Worker</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box blue">GitHub API</div>
+      <div class="arch-label">(reads state.json, returns listings)</div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-box gray">User taps button</div>
+      <div class="arch-arrow">POST →</div>
+      <div class="arch-box gold">Cloudflare Worker</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box blue">GitHub API</div>
+      <div class="arch-label">(patches one field on one listing)</div>
+    </div>
+  </div>
+
+  <h3>Files</h3>
+  <table>
+    <tr><th>File</th><th>Location</th><th>Purpose</th></tr>
+    <tr><td class="field-name">scrape.py</td><td>GitHub repo root</td><td>Main Python script. Queries APIs, filters, enriches, deduplicates, writes output.</td></tr>
+    <tr><td class="field-name">worker.js</td><td>Cloudflare Workers</td><td>CORS proxy between browser and GitHub API. Handles read (GET) and single-field delta writes (POST).</td></tr>
+    <tr><td class="field-name">docs/index.html</td><td>GitHub Pages</td><td>Shell HTML page served at ranches.johnzur.com. All rendering is client-side.</td></tr>
+    <tr><td class="field-name">docs/state.json</td><td>GitHub repo</td><td>Single source of truth. All listings, all statuses, all enrichment data.</td></tr>
+    <tr><td class="field-name">weekly-scrape.yml</td><td>.github/workflows/</td><td>GitHub Actions workflow. Currently manual-trigger only.</td></tr>
+  </table>
+
+  <h3>Filtering Logic (scrape.py)</h3>
+  <table>
+    <tr><th>Pass</th><th>What Gets Dropped</th></tr>
+    <tr><td class="field-name">Pass 1 — Hard data</td><td>Beds &lt; 3, Baths &lt; 2, Price &gt; $1,000,000, Lot = 0</td></tr>
+    <tr><td class="field-name">Pass 2 — Ranch validation</td><td>No "ranch", "one story", "single floor", "rambler" (etc.) in structured fields or description</td></tr>
+    <tr><td class="field-name">Pass 2 — Basement validation</td><td>No "basement", "finished basement", "walk-out basement" (etc.) found anywhere in the listing data</td></tr>
+    <tr><td class="field-name">Deduplication</td><td>Same normalized address from multiple sources — keep one, drop the rest</td></tr>
+  </table>
+</section>
+
+<!-- ── 6. FAQ ──────────────────────────────────────────────────────────────── -->
+<section id="faq">
+  <h2>6. FAQ &amp; Troubleshooting</h2>
+  <hr class="rule">
+
+  <div class="faq-q">Q: Why do I see listings from Edison, Clark, and Spotswood?</div>
+  <div class="faq-a">Redfin searches by coordinates with a 10-mile radius centered on each target town. That radius overlaps towns outside the original scope. These are real ranch/basement matches — whether to include or exclude specific towns is a configuration decision.</div>
+
+  <div class="faq-q">Q: Why are there so many more Redfin listings than Zillow?</div>
+  <div class="faq-a">Redfin's radius search casts a wide geographic net. Zillow searches by city name, so it returns only listings explicitly listed under that municipality. The gap is expected — it's not a bug. Both sources are 100% accurate on keyword=ranch filtering.</div>
+
+  <div class="faq-q">Q: What does ⚠️ Basement mean vs. ✅?</div>
+  <div class="faq-a">✅ means the basement was confirmed via a structured API field (basementYN = true or equivalent). ⚠️ means the structured fields were absent or ambiguous, but the word "basement" was found in the description text. ⚠️ listings are worth a quick check of the full listing before scheduling a viewing.</div>
+
+  <div class="faq-q">Q: How do I enter price in the filter?</div>
+  <div class="faq-a">Whole dollars, no $ sign, no commas. To filter for homes under $700,000, enter <code>700000</code> in the Max field and leave Min blank.</div>
+
+  <div class="faq-q">Q: How do I enter lot size in the filter?</div>
+  <div class="faq-a">Decimal acres. Examples: <code>0.25</code> = quarter acre, <code>0.5</code> = half acre, <code>1.0</code> = one acre. The app converts internally from square feet — you always enter acres.</div>
+
+  <div class="faq-q">Q: My save says "Save failed — please retry." What do I do?</div>
+  <div class="faq-a">Tap the button again. The system has automatic retry logic for simultaneous save conflicts. If it fails repeatedly, try refreshing the page.</div>
+
+  <div class="faq-q">Q: The page says "New listings available — tap to refresh." What does that mean?</div>
+  <div class="faq-a">A new scrape run completed after you loaded the page. Tapping refreshes to the latest data.</div>
+
+  <div class="faq-q">Q: The 💑 Both tab is empty even though I've favorited things. Why?</div>
+  <div class="faq-a">The 💑 Both tab only shows listings where Christine has also tapped ❤️ Christine. It requires both votes — John's Favorite and Christine's heart — to appear there.</div>
+
+  <div class="faq-q">Q: The page isn't loading — just shows "Loading listings…"</div>
+  <div class="faq-a">This usually means a JavaScript error in the page. Try a hard refresh (Ctrl+Shift+R on desktop, hold-reload on mobile). If it persists, the page may need a code fix — report to John.</div>
+
+  <div class="faq-q">Q: Can I undo a Delete?</div>
+  <div class="faq-a">Yes. Go to the 🗑️ Deleted tab, find the listing, and tap ↩️ Restore. It returns to the Queue.</div>
+</section>
+
+</main>
+
+<footer>
+  Ranch Finder &nbsp;·&nbsp; ranches.johnzur.com &nbsp;·&nbsp; Built July 2026
+</footer>
+
+</body>
+</html>
