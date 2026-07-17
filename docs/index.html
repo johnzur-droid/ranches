@@ -82,7 +82,7 @@
 <div class="sticky-top">
   <header>
     <h1>Ranch Finder — Bridgewater, Somerset &amp; Cranford, NJ</h1>
-    <div class="meta" id="header-meta">Last scrape: July 17, 2026 at 01:46 AM EDT</div>
+    <div class="meta" id="header-meta">Last scrape: July 17, 2026 at 01:58 AM EDT</div>
   </header>
   <nav id="main-nav">
     <button class="active" onclick="showTab('new-this-week',this)">🆕 This Week (<span id="nav-new-this-week">0</span>)</button>
@@ -244,7 +244,7 @@ function renderCard(id, L) {
     ? `<div class="christine-pass-indicator">👎 Christine not interested</div>` : "";
 
   const photoHtml = L.photo_url
-    ? `<img class="card-photo" src="${L.photo_url}" alt="Property photo" onclick="openLightbox('${L.photo_url}')" loading="lazy">`
+    ? `<img class="card-photo" src="${L.photo_url}" alt="Property photo" onclick="openLightbox('${L.photo_url_hires||L.photo_url}')" loading="lazy">`
     : `<div class="card-photo-placeholder">No photo available</div>`;
 
   return `
