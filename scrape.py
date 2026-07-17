@@ -603,48 +603,30 @@ def process_redfin_area(area):
 
 def zillow_search(area):
     """
-    Zillow /search/byaddress — two searches per town, merged and deduped.
-    Search 1: keywords=ranch — catches listings with ranch in text
-    Search 2: singleStoryOnly=true — catches single-story homes regardless of text
-    Confirmed S005: neither alone is complete — union of both maximizes coverage.
+    Zillow /search/byaddress — single search using keywords=ranch.
+    Confirmed S005: singleStoryOnly=true tested but overlap with keywords=ranch
+    is very high — only 1 additional listing found across Somerset test.
+    Not worth the extra API call per town per run.
     bathrooms=TwoPlus confirmed working on byaddress (not bycoordinates).
     listing_status=For_Sale (not status=forSale) — confirmed S003.
     bed_min=3 — updated S003 per JZ requirement.
     Basement filter removed S005 — basement is a badge not a hard filter.
     """
     print(f"  Zillow search: {area['name']}...")
-
-    base_params = {
+    data = api_get(ZILLOW_BASE, "/search/byaddress", {
         "location":         area["zillow_location"],
         "listing_status":   "For_Sale",
+        "keywords":         "ranch",
         "bed_min":          MIN_BEDS,
         "bathrooms":        "TwoPlus",
         "home_type":        "Houses",
         "list_price_range": f"min:0, max:{MAX_PRICE}",
-    }
-
-    # Search 1 — keyword match
-    data1 = api_get(ZILLOW_BASE, "/search/byaddress", {**base_params, "keywords": "ranch"})
-    raw1  = data1.get("searchResults") or [] if data1 else []
-    res1  = [item.get("property") or item for item in raw1]
-
-    # Search 2 — single story filter
-    data2 = api_get(ZILLOW_BASE, "/search/byaddress", {**base_params, "singleStoryOnly": "true"})
-    raw2  = data2.get("searchResults") or [] if data2 else []
-    res2  = [item.get("property") or item for item in raw2]
-
-    # Merge and dedup by zpid
-    seen = set()
-    results = []
-    for r in res1 + res2:
-        zpid = r.get("zpid")
-        if zpid and zpid not in seen:
-            seen.add(zpid)
-            results.append(r)
-        elif not zpid:
-            results.append(r)
-
-    print(f"    → {len(res1)} keyword + {len(res2)} singleStory = {len(results)} unique")
+    })
+    if not data:
+        return []
+    raw = data.get("searchResults") or []
+    results = [item.get("property") or item for item in raw]
+    print(f"    → {len(results)} raw hits")
     return results
 
 
