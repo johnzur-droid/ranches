@@ -284,15 +284,6 @@ function renderCard(id, L) {
   if (bl.startsWith("✅")) badges += `<span class="badge badge-basement-yes">${bl}</span>`;
   else if (bl.startsWith("⚠️")) badges += `<span class="badge badge-basement-maybe">${bl}</span>`;
   else if (bl.startsWith("❌")) badges += `<span class="badge badge-basement-no">${bl}</span>`;
-  const hw = L.highway_roads || [];
-  if (hw.length) {
-    hw.forEach(r => {
-      const dist = r.distance_miles != null ? ` — ${r.distance_miles} mi` : "";
-      badges += `<span class="badge badge-highway">🛣️ ${r.name}${dist}</span>`;
-    });
-  } else if (L.near_highway) {
-    badges += `<span class="badge badge-highway">🛣️ Near Highway</span>`;
-  }
   if (L.busy_road) badges += `<span class="badge badge-road">⚠️ Busy Road</span>`;
 
   // Map buttons — address-based fallback (no lat/lng stored yet)
@@ -339,6 +330,7 @@ function renderCard(id, L) {
     ${badges ? `<div class="badges">${badges}</div>` : ""}
     ${L.garage_label  ? `<div class="info-line">${L.garage_label}</div>`  : ""}
     ${L.property_road ? `<div class="info-line">${L.property_road}</div>` : ""}
+    ${(()=>{ const hw=(L.highway_roads||[]).filter(r=>r.distance_miles!=null&&r.distance_miles<=0.25); return hw.length ? `<div class="info-line hw-line">🛣️ Near Highway: ${hw.map(r=>r.name+' — '+r.distance_miles+' mi').join(', ')</div>` : ''; })()}
     ${passInd}
     <div class="map-btns">
       <a href="${svUrl}"  target="_blank" class="map-btn">📷 Street View</a>
@@ -621,14 +613,20 @@ function garageClass(label) {
   return (l.includes("garage") || l.includes("carport")) ? "yes" : "no";
 }
 
-// Classify road
+// Classify road type from property_road label
 function roadClass(L) {
+  const pr = L.property_road || "";
+  if (pr.includes("Primary")) return "primary";
+  if (pr.includes("Secondary")) return "secondary";
+  if (pr.includes("Minor")) return "minor";
+  return "residential";
+}
+
+// Near highway: true if any highway_roads entry within 0.25 mi
+function isNearHighway(L) {
   const hw = L.highway_roads || [];
-  const busy = L.busy_road || false;
-  const near = L.near_highway || hw.length > 0;
-  if (near) return "highway";
-  if (busy) return "busy";
-  return "clean";
+  if (!hw.length) return false;
+  return hw.some(r => r.distance_miles != null && r.distance_miles <= 0.25);
 }
 
 // Parse price to number
@@ -676,6 +674,7 @@ function getFilters() {
     basement: checked("fg-basement"),
     garage:   checked("fg-garage"),
     road:     checked("fg-road"),
+    highway:  checked("fg-highway"),
   };
 }
 
@@ -695,8 +694,14 @@ function passesFilters(L, f) {
   if (f.basement.length > 0 && !f.basement.includes(basementClass(L.basement_label))) return false;
   // Garage
   if (f.garage.length > 0 && !f.garage.includes(garageClass(L.garage_label))) return false;
-  // Road
+  // Road type
   if (f.road.length > 0 && !f.road.includes(roadClass(L))) return false;
+  // Near highway
+  if (f.highway.length > 0) {
+    const near = isNearHighway(L);
+    if (f.highway.includes("yes") && !f.highway.includes("no") && !near) return false;
+    if (f.highway.includes("no") && !f.highway.includes("yes") && near) return false;
+  }
   return true;
 }
 
@@ -707,7 +712,7 @@ function applyFilters() {
   activeFilters = getFilters();
   const hasAny = activeFilters.towns.length || activeFilters.priceMin || activeFilters.priceMax ||
                  activeFilters.lotMin || activeFilters.lotMax || activeFilters.basement.length ||
-                 activeFilters.garage.length || activeFilters.road.length;
+                 activeFilters.garage.length || activeFilters.road.length || activeFilters.highway.length;
   document.getElementById("filter-toggle").classList.toggle("active", !!hasAny);
   renderAll();
   showTab(activeTab, document.querySelector("nav button.active"));
