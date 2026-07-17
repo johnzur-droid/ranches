@@ -850,6 +850,12 @@ def process_zillow_area(area):
         links = media.get("propertyPhotoLinks") or {}
         if links.get("mediumSizeLink"):     photo_url       = links["mediumSizeLink"]
         if links.get("highResolutionLink"): photo_url_hires = links["highResolutionLink"]
+        # highResolutionLink may itself be medium — check for uncropped variant
+        if not photo_url_hires or photo_url_hires == photo_url:
+            # Try to derive uncropped URL from medium URL pattern
+            import re as _re
+            if photo_url:
+                photo_url_hires = _re.sub(r'-p_[a-z]\.jpg$', '-uncropped_scaled_within_1344_1008.jpg', photo_url)
         if not photo_url_hires: photo_url_hires = photo_url
 
         listings.append({
