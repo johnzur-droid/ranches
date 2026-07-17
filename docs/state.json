@@ -1363,7 +1363,9 @@
       "highway_roads": [],
       "status": "new",
       "first_seen": "2026-07-17",
-      "run_date": "2026-07-17"
+      "run_date": "2026-07-17",
+      "photo_url": "https://ssl.cdn-redfin.com/photo/121/islphoto/317/genIslnoResize.4041317_0.jpg",
+      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/121/bigphoto/317/4041317_0.jpg"
     },
     "redfin_37867883": {
       "id": "redfin_37867883",
@@ -1382,7 +1384,9 @@
       "highway_roads": [],
       "status": "new",
       "first_seen": "2026-07-17",
-      "run_date": "2026-07-17"
+      "run_date": "2026-07-17",
+      "photo_url": "https://ssl.cdn-redfin.com/photo/122/islphoto/64R/genIslnoResize.2700964R_0.jpg",
+      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/122/bigphoto/64R/2700964R_0.jpg"
     },
     "redfin_37975796": {
       "id": "redfin_37975796",
@@ -1401,7 +1405,9 @@
       "highway_roads": [],
       "status": "new",
       "first_seen": "2026-07-17",
-      "run_date": "2026-07-17"
+      "run_date": "2026-07-17",
+      "photo_url": "https://ssl.cdn-redfin.com/photo/121/islphoto/115/genIslnoResize.4041115_2.jpg",
+      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/121/bigphoto/115/4041115_2.jpg"
     },
     "redfin_37303330": {
       "id": "redfin_37303330",
@@ -1420,7 +1426,9 @@
       "highway_roads": [],
       "status": "new",
       "first_seen": "2026-07-17",
-      "run_date": "2026-07-17"
+      "run_date": "2026-07-17",
+      "photo_url": "https://ssl.cdn-redfin.com/photo/121/islphoto/076/genIslnoResize.4040076_9.jpg",
+      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/121/bigphoto/076/4040076_9.jpg"
     },
     "redfin_37300109": {
       "id": "redfin_37300109",
@@ -1444,7 +1452,9 @@
       ],
       "status": "new",
       "first_seen": "2026-07-17",
-      "run_date": "2026-07-17"
+      "run_date": "2026-07-17",
+      "photo_url": "https://ssl.cdn-redfin.com/photo/121/islphoto/026/genIslnoResize.4041026_2.jpg",
+      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/121/bigphoto/026/4041026_2.jpg"
     },
     "redfin_37736920": {
       "id": "redfin_37736920",
@@ -1468,7 +1478,9 @@
       ],
       "status": "new",
       "first_seen": "2026-07-17",
-      "run_date": "2026-07-17"
+      "run_date": "2026-07-17",
+      "photo_url": "https://ssl.cdn-redfin.com/photo/121/islphoto/733/genIslnoResize.4040733_2.jpg",
+      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/121/bigphoto/733/4040733_2.jpg"
     },
     "redfin_37643264": {
       "id": "redfin_37643264",
