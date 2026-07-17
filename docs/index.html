@@ -330,7 +330,7 @@ function renderCard(id, L) {
     ${badges ? `<div class="badges">${badges}</div>` : ""}
     ${L.garage_label  ? `<div class="info-line">${L.garage_label}</div>`  : ""}
     ${L.property_road ? `<div class="info-line">${L.property_road}</div>` : ""}
-    ${(()=>{ const hw=(L.highway_roads||[]).filter(r=>r.distance_miles!=null&&r.distance_miles<=0.25); return hw.length ? `<div class="info-line hw-line">🛣️ Near Highway: ${hw.map(r=>r.name+' — '+r.distance_miles+' mi').join(', ')</div>` : ''; })()}
+    ${(()=>{ const hw=(L.highway_roads||[]).filter(r=>r.distance_miles!=null&&r.distance_miles<=0.25); return hw.length ? `<div class="info-line hw-line">🛣️ Near Highway: ${hw.map(r=>r.name+' — '+r.distance_miles+' mi').join(', ')}</div>` : ''; })()}
     ${passInd}
     <div class="map-btns">
       <a href="${svUrl}"  target="_blank" class="map-btn">📷 Street View</a>
