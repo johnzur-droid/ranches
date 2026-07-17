@@ -1,13 +1,7 @@
 name: Weekly Ranch Search
 
 on:
-  schedule:
-    # Every Monday at 13:00 UTC (9:00 AM Eastern during EDT)
-    # Skipping July 21 — first run July 27, 2026, then every Monday after
-    - cron: '0 13 27 7 1'    # July 27 specifically
-    - cron: '0 13 * 8-12 1'  # Every Monday Aug–Dec
-    - cron: '0 13 * 1-6 1'   # Every Monday Jan–Jun
-  workflow_dispatch: {}
+  workflow_dispatch: {}  # manual trigger only — JZ will ask Claude to run when ready
 
 permissions:
   contents: write
