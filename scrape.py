@@ -577,28 +577,32 @@ def process_redfin_area(area):
         # Google Maps enrichment
         risk = check_location_risk(addr, None, None)
 
-        photo_url = ""
+        photo_url      = ""
+        photo_url_hires = ""
         photo_urls = r.get("photoUrls") or {}
-        medium = photo_urls.get("mediumRes") or []
-        if medium:
-            photo_url = medium[0] if isinstance(medium, list) else medium
+        medium_list = photo_urls.get("mediumRes") or []
+        hires_list  = photo_urls.get("highRes")   or []
+        if medium_list: photo_url       = medium_list[0] if isinstance(medium_list, list) else medium_list
+        if hires_list:  photo_url_hires = hires_list[0]  if isinstance(hires_list,  list) else hires_list
+        if not photo_url_hires: photo_url_hires = photo_url
 
         listings.append({
-            "id":             f"redfin_{property_id}",
-            "address":        addr,
-            "price":          price,
-            "beds":           beds,
-            "baths":          baths,
-            "lot_sqft":       lot,
-            "url":            full_url,
-            "source":         "Redfin",
-            "photo_url":      photo_url,
-            "basement_label": basement_label,
-            "garage_label":   garage_label,
-            "property_road":  risk["property_road"],
-            "busy_road":      risk["busy_road"],
-            "near_highway":   risk["near_highway"],
-            "highway_roads":  risk["highway_roads"],
+            "id":               f"redfin_{property_id}",
+            "address":          addr,
+            "price":            price,
+            "beds":             beds,
+            "baths":            baths,
+            "lot_sqft":         lot,
+            "url":              full_url,
+            "source":           "Redfin",
+            "photo_url":        photo_url,
+            "photo_url_hires":  photo_url_hires,
+            "basement_label":   basement_label,
+            "garage_label":     garage_label,
+            "property_road":    risk["property_road"],
+            "busy_road":        risk["busy_road"],
+            "near_highway":     risk["near_highway"],
+            "highway_roads":    risk["highway_roads"],
         })
         print(f"    PASS: {addr} {fmt_price(price)} | {basement_label or 'no basement data'} | {garage_label} | {risk['property_road'] or 'road unknown'}")
 
@@ -840,28 +844,31 @@ def process_zillow_area(area):
         # Google Maps enrichment
         risk = check_location_risk(addr, None, None)
 
-        photo_url = ""
+        photo_url       = ""
+        photo_url_hires = ""
         media = r.get("media") or {}
         links = media.get("propertyPhotoLinks") or {}
-        if links.get("mediumSizeLink"):
-            photo_url = links["mediumSizeLink"]
+        if links.get("mediumSizeLink"):     photo_url       = links["mediumSizeLink"]
+        if links.get("highResolutionLink"): photo_url_hires = links["highResolutionLink"]
+        if not photo_url_hires: photo_url_hires = photo_url
 
         listings.append({
-            "id":             f"zillow_{zpid}",
-            "address":        addr,
-            "price":          price,
-            "beds":           beds,
-            "baths":          baths,
-            "lot_sqft":       lot,
-            "url":            f"https://www.zillow.com/homedetails/{zpid}_zpid/",
-            "source":         "Zillow",
-            "photo_url":      photo_url,
-            "basement_label": basement_label,
-            "garage_label":   garage_label,
-            "property_road":  risk["property_road"],
-            "busy_road":      risk["busy_road"],
-            "near_highway":   risk["near_highway"],
-            "highway_roads":  risk["highway_roads"],
+            "id":               f"zillow_{zpid}",
+            "address":          addr,
+            "price":            price,
+            "beds":             beds,
+            "baths":            baths,
+            "lot_sqft":         lot,
+            "url":              f"https://www.zillow.com/homedetails/{zpid}_zpid/",
+            "source":           "Zillow",
+            "photo_url":        photo_url,
+            "photo_url_hires":  photo_url_hires,
+            "basement_label":   basement_label,
+            "garage_label":     garage_label,
+            "property_road":    risk["property_road"],
+            "busy_road":        risk["busy_road"],
+            "near_highway":     risk["near_highway"],
+            "highway_roads":    risk["highway_roads"],
         })
         print(f"    PASS: {addr} {fmt_price(price)} | {basement_label or 'no basement data'} | {garage_label} | {risk['property_road'] or 'road unknown'}")
 
@@ -1339,7 +1346,7 @@ function renderCard(id, L) {{
     ? `<div class="christine-pass-indicator">👎 Christine not interested</div>` : "";
 
   const photoHtml = L.photo_url
-    ? `<img class="card-photo" src="${{L.photo_url}}" alt="Property photo" onclick="openLightbox('${{L.photo_url}}')" loading="lazy">`
+    ? `<img class="card-photo" src="${{L.photo_url}}" alt="Property photo" onclick="openLightbox('${{L.photo_url_hires||L.photo_url}}')" loading="lazy">`
     : `<div class="card-photo-placeholder">No photo available</div>`;
 
   return `
