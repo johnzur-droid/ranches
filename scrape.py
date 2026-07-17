@@ -1112,6 +1112,10 @@ def _shell_html(run_time, worker_url):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ranch Finder — Bridgewater, Somerset &amp; Cranford, NJ</title>
+<link rel="icon" type="image/x-icon" href="/ranches/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/ranches/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/ranches/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/ranches/favicon-180.png">
 <style>
   :root{{--bg:#f7f6f3;--surface:#fff;--border:#e2e0db;--text:#1a1a1a;--muted:#6b6b6b;--accent:#2d6a4f;--radius:10px;--shadow:0 2px 8px rgba(0,0,0,.08);}}
   *{{box-sizing:border-box;margin:0;padding:0;}}
