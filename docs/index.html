@@ -93,6 +93,10 @@
   #filter-status{font-size:.8rem;color:var(--muted);align-self:flex-end;white-space:nowrap;padding-bottom:2px;}
   #filter-reset{font-size:.78rem;font-weight:600;padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;align-self:flex-end;}
   #filter-reset:hover{border-color:#aaa;color:var(--text);}
+  .help-item{display:block;padding:11px 16px;font-size:.85rem;font-weight:500;color:var(--text);text-decoration:none;border-bottom:1px solid var(--border);}
+  .help-item:last-child{border-bottom:none;}
+  .help-item:hover{background:var(--bg);}
+  #help-btn:hover{color:var(--accent);}
   #filter-toggle{font-size:.78rem;font-weight:600;padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;}
   #filter-toggle.active{border-color:var(--accent);color:var(--accent);background:#f0f9f4;}
   .filter-towns{display:flex;flex-wrap:wrap;gap:4px;max-width:360px;}
@@ -114,7 +118,15 @@
     <button onclick="showTab('think',this)">🤔 Maybe (<span id="nav-think">0</span>)</button>
     <button onclick="showTab('deleted',this)">🗑️ Deleted (<span id="nav-deleted">0</span>)</button>
     <button id="filter-toggle" onclick="toggleFilterBar(this)" style="margin-left:auto;">🔍 Filter</button>
-    <a href="guide.html" target="_blank" title="User Guide" style="display:flex;align-items:center;padding:8px 12px;font-size:.95rem;color:var(--muted);text-decoration:none;border-left:1px solid var(--border);">?</a>
+    <div id="help-menu-wrap" style="position:relative;border-left:1px solid var(--border);">
+      <button id="help-btn" onclick="toggleHelpMenu()" style="font-size:.9rem;font-weight:700;padding:8px 14px;border:none;background:none;color:var(--muted);cursor:pointer;line-height:1;" title="Resources">?</button>
+      <div id="help-menu" style="display:none;position:absolute;right:0;top:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:210px;z-index:200;overflow:hidden;">
+        <a href="guide.html" target="_blank" class="help-item">📖 User Guide</a>
+        <a href="How_Ranch_Finder_Hacks_Real_Estate_Search.mp4" target="_blank" class="help-item">🎬 Video Walkthrough</a>
+        <a href="RanchFinder_Platform.pdf" target="_blank" class="help-item">📊 Slide Deck (PDF)</a>
+        <a href="Smarter_Real_Estate_Search_Workflow.png" target="_blank" class="help-item">🗺️ Infographic</a>
+      </div>
+    </div>
   </nav>
   <div id="filter-bar" class="hidden">
     <!-- Towns — populated dynamically -->
@@ -594,6 +606,18 @@ function showToast(msg, isError=false) {
   clearTimeout(t._timer);
   t._timer = setTimeout(() => t.className = "", 2500);
 }
+
+// ── Help menu ────────────────────────────────────────────────────────────────
+function toggleHelpMenu() {
+  const m = document.getElementById("help-menu");
+  m.style.display = m.style.display === "none" ? "block" : "none";
+}
+document.addEventListener("click", e => {
+  const wrap = document.getElementById("help-menu-wrap");
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById("help-menu").style.display = "none";
+  }
+});
 
 window.addEventListener("scroll", () => {
   const btn = document.getElementById("scroll-top");
