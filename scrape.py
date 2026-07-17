@@ -886,8 +886,8 @@ def load_state():
 
 def save_state(state):
     os.makedirs(DOCS_DIR, exist_ok=True)
-    with open(STATE_FILE, "w") as f:
-        json.dump(state, f, indent=2)
+    with open(STATE_FILE, "w", encoding="utf-8") as f:
+        json.dump(state, f, indent=2, ensure_ascii=False)
 
 
 def merge_into_state(state, fresh_listings):
