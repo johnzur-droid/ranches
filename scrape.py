@@ -577,6 +577,12 @@ def process_redfin_area(area):
         # Google Maps enrichment
         risk = check_location_risk(addr, None, None)
 
+        photo_url = ""
+        photo_urls = r.get("photoUrls") or {}
+        medium = photo_urls.get("mediumRes") or []
+        if medium:
+            photo_url = medium[0] if isinstance(medium, list) else medium
+
         listings.append({
             "id":             f"redfin_{property_id}",
             "address":        addr,
@@ -586,6 +592,7 @@ def process_redfin_area(area):
             "lot_sqft":       lot,
             "url":            full_url,
             "source":         "Redfin",
+            "photo_url":      photo_url,
             "basement_label": basement_label,
             "garage_label":   garage_label,
             "property_road":  risk["property_road"],
@@ -833,6 +840,12 @@ def process_zillow_area(area):
         # Google Maps enrichment
         risk = check_location_risk(addr, None, None)
 
+        photo_url = ""
+        media = r.get("media") or {}
+        links = media.get("propertyPhotoLinks") or {}
+        if links.get("mediumSizeLink"):
+            photo_url = links["mediumSizeLink"]
+
         listings.append({
             "id":             f"zillow_{zpid}",
             "address":        addr,
@@ -842,6 +855,7 @@ def process_zillow_area(area):
             "lot_sqft":       lot,
             "url":            f"https://www.zillow.com/homedetails/{zpid}_zpid/",
             "source":         "Zillow",
+            "photo_url":      photo_url,
             "basement_label": basement_label,
             "garage_label":   garage_label,
             "property_road":  risk["property_road"],
@@ -1143,7 +1157,11 @@ def _shell_html(run_time, worker_url):
   .btn-christine-pass.active{{background:#6b7280;border-color:transparent;color:#fff;}}
   .empty{{color:var(--muted);font-size:.9rem;padding:12px 0;}}
   .hidden{{display:none!important;}}
-  #loading{{text-align:center;padding:60px 32px;color:var(--muted);font-size:1rem;}}
+  .card-photo{{width:100%;height:180px;object-fit:cover;cursor:pointer;display:block;border-bottom:1px solid var(--border);}}
+  .card-photo-placeholder{{width:100%;height:60px;background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.8rem;}}
+  #lightbox{{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;align-items:center;justify-content:center;cursor:pointer;}}
+  #lightbox.open{{display:flex;}}
+  #lightbox img{{max-width:95vw;max-height:95vh;object-fit:contain;border-radius:6px;}}
   #error-banner{{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;padding:12px 32px;font-size:.9rem;display:none;}}
   #stale-banner{{background:#fef9c3;border-bottom:1px solid #fde68a;color:#92400e;padding:10px 32px;font-size:.85rem;text-align:center;display:none;cursor:pointer;}}
   #toast{{position:fixed;bottom:24px;right:24px;background:#1a1a1a;color:#fff;padding:10px 18px;border-radius:8px;font-size:.85rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}}
@@ -1181,6 +1199,7 @@ def _shell_html(run_time, worker_url):
   <div id="tab-deleted"       class="tab-pane hidden"></div>
 </main>
 <div id="toast"></div>
+<div id="lightbox" onclick="closeLightbox()"><img id="lightbox-img" src="" alt="Property photo"></div>
 <button id="scroll-top" onclick="window.scrollTo({{top:0,behavior:'smooth'}})">↑</button>
 
 <script>
@@ -1319,8 +1338,13 @@ function renderCard(id, L) {{
   const passInd = (status === "favorite" && L.christine_pass)
     ? `<div class="christine-pass-indicator">👎 Christine not interested</div>` : "";
 
+  const photoHtml = L.photo_url
+    ? `<img class="card-photo" src="${{L.photo_url}}" alt="Property photo" onclick="openLightbox('${{L.photo_url}}')" loading="lazy">`
+    : `<div class="card-photo-placeholder">No photo available</div>`;
+
   return `
 <div class="card" id="card-${{id}}" data-id="${{id}}" data-status="${{status}}">
+  ${{photoHtml}}
   <div class="card-body">
     <h3 class="address"><a href="${{L.url||"#"}}" target="_blank">${{L.address||""}}</a></h3>
     <div class="stats">
@@ -1554,6 +1578,16 @@ async function doSave(id, field, value) {{
 }}
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
+function openLightbox(url) {{
+  document.getElementById("lightbox-img").src = url;
+  document.getElementById("lightbox").classList.add("open");
+}}
+function closeLightbox() {{
+  document.getElementById("lightbox").classList.remove("open");
+  document.getElementById("lightbox-img").src = "";
+}}
+document.addEventListener("keydown", e => {{ if(e.key==="Escape") closeLightbox(); }});
+
 function showToast(msg, isError=false) {{
   const t = document.getElementById("toast");
   t.textContent = msg;
