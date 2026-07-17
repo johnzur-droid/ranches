@@ -942,10 +942,10 @@ def merge_into_state(state, fresh_listings):
     return new_ids
 
 # ---------------------------------------------------------------------------
-# HTML generation
+# HTML generation — shell only, all rendering done client-side via JS
 # ---------------------------------------------------------------------------
 
-def risk_badges(listing):
+def _DELETED_risk_badges(listing):
     badges = ""
 
     # Basement badge
@@ -1059,160 +1059,49 @@ def listing_card_html(lid, listing, status):
 
 
 def generate_html(state, new_ids):
-    listings = state["listings"]
+    """
+    Generate the shell HTML page. No listings embedded — all data fetched
+    live from the worker on page load. Scraper owns state.json; browser
+    owns only status/christine fields via delta saves.
+    """
     try:
         from zoneinfo import ZoneInfo
-        eastern  = ZoneInfo("America/New_York")
+        eastern = ZoneInfo("America/New_York")
     except ImportError:
         eastern = timezone.utc
     run_time = datetime.now(eastern).strftime("%B %d, %Y at %I:%M %p %Z")
 
-    # Determine "this week" cutoff — listings first_seen within 7 days
-    today_dt = datetime.now(timezone.utc)
-    def is_new_this_week(data):
-        fs = data.get("first_seen") or data.get("run_date") or ""
-        if not fs:
-            return False
-        try:
-            from datetime import date
-            fs_date = datetime.strptime(fs[:10], "%Y-%m-%d").replace(tzinfo=timezone.utc)
-            return (today_dt - fs_date).days <= 7
-        except Exception:
-            return False
+    worker_url = os.environ.get("WORKER_URL", "https://ranches-proxy.johnzur.workers.dev")
+    return _shell_html(run_time, worker_url)
 
-    groups = {"new_this_week": [], "unreviewed": [], "favorite": [], "both": [], "think": []}
-    for lid, data in listings.items():
-        s = data.get("status", "new")
-        if s == "deleted":
-            continue
-        if s == "favorite":
-            if data.get("christine_favorite"):
-                groups["both"].append((lid, data))
-            else:
-                # Stays in favorites whether christine_pass is True or False
-                groups["favorite"].append((lid, data))
-        elif s == "think":
-            groups["think"].append((lid, data))
-        else:
-            if is_new_this_week(data):
-                groups["new_this_week"].append((lid, data))
-            groups["unreviewed"].append((lid, data))
 
-    # Sort unreviewed by run_date desc then first_seen desc
-    groups["unreviewed"].sort(key=lambda x: (x[1].get("run_date",""), x[1].get("first_seen","")), reverse=True)
-
-    # Group unreviewed by run_date for rendering
-    from collections import OrderedDict
-    unreviewed_by_date = OrderedDict()
-    for lid, data in groups["unreviewed"]:
-        rd = data.get("run_date") or data.get("first_seen") or "Unknown"
-        unreviewed_by_date.setdefault(rd, []).append((lid, data))
-
-    # Build unreviewed section HTML — grouped by run_date with Delete All per group
-    def unreviewed_section_html():
-        if not groups["unreviewed"]:
-            return '<section class="section hidden" id="section-unreviewed"><h2>Unreviewed</h2><p class="empty">No unreviewed listings.</p></section>'
-        inner = ""
-        for rd, items in unreviewed_by_date.items():
-            group_ids = json.dumps([lid for lid, _ in items])
-            inner += (
-                f'<div class="run-group">'
-                f'<div class="run-group-header">'
-                f'<span class="run-date-label">Run: {rd}</span>'
-                f'<button class="delete-all-btn" onclick="deleteAll({group_ids})">Delete All ({len(items)})</button>'
-                f'</div>'
-                f'<div class="grid">'
-                + "".join(listing_card_html(lid, d, d.get("status","new")) for lid, d in items)
-                + '</div></div>'
-            )
-        count = len(groups["unreviewed"])
-        return (
-            f'<section class="section hidden" id="section-unreviewed">'
-            f'<h2>Unreviewed <span class="count" id="count-unreviewed">{count}</span></h2>'
-            + inner +
-            '</section>'
-        )
-
-    def simple_section(title, key, cards, collapsed=True):
-        hidden = " hidden" if collapsed else ""
-        count_id = f'id="count-{key}"'
-        if not cards:
-            return (
-                f'<section class="section{hidden}" id="section-{key}">'
-                f'<h2>{title} <span class="count" {count_id}>0</span></h2>'
-                f'<p class="empty">No listings in this section.</p></section>'
-            )
-        html = "".join(listing_card_html(lid, d, d.get("status","new")) for lid, d in cards)
-        return (
-            f'<section class="section{hidden}" id="section-{key}">'
-            f'<h2>{title} <span class="count" {count_id}>{len(cards)}</span></h2>'
-            f'<div class="grid">{html}</div></section>'
-        )
-
-    ntw_count   = len(groups["new_this_week"])
-    unrev_count = len(groups["unreviewed"])
-    fav_count   = len(groups["favorite"])
-    both_count  = len(groups["both"])
-    think_count = len(groups["think"])
-
-    ntw_cards = "".join(listing_card_html(lid, d, d.get("status","new")) for lid, d in groups["new_this_week"])
-    new_this_week_html = (
-        f'<section class="section" id="section-new-this-week">'
-        f'<h2>New This Week <span class="count" id="count-new-this-week">{ntw_count}</span></h2>'
-        + (f'<div class="grid">{ntw_cards}</div>' if ntw_count else '<p class="empty">No new listings this week.</p>')
-        + '</section>'
-    )
-
-    sections_html = (
-        new_this_week_html +
-        unreviewed_section_html() +
-        simple_section("⭐ Favorites",   "favorite", groups["favorite"], collapsed=True) +
-        simple_section("💑 Both Love It","both",     groups["both"],     collapsed=True) +
-        simple_section("🤔 Maybe",       "think",    groups["think"],    collapsed=True)
-    )
-
-    state_json   = json.dumps({k: v for k, v in listings.items() if v.get("status") != "deleted"})
-    worker_url   = os.environ.get("WORKER_URL", "https://ranches-proxy.johnzur.workers.dev")
-
+def _shell_html(run_time, worker_url):
+    """Pure shell — no listings embedded. All data fetched live from worker."""
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ranch Finder — Bridgewater, Somerset &amp; Cranford, NJ</title>
-<link rel="icon" type="image/x-icon" href="/ranches/favicon.ico?v=2">
-<link rel="icon" type="image/png" sizes="32x32" href="/ranches/favicon-32.png?v=2">
-<link rel="icon" type="image/png" sizes="16x16" href="/ranches/favicon-16.png?v=2">
-<link rel="apple-touch-icon" sizes="180x180" href="/ranches/favicon-180.png?v=2">
-<meta name="apple-mobile-web-app-title" content="Ranch Finder">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#2d6a4f">
 <style>
   :root{{--bg:#f7f6f3;--surface:#fff;--border:#e2e0db;--text:#1a1a1a;--muted:#6b6b6b;--accent:#2d6a4f;--radius:10px;--shadow:0 2px 8px rgba(0,0,0,.08);}}
   *{{box-sizing:border-box;margin:0;padding:0;}}
-  body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;padding-top:0;}}
-  /* Sticky header + nav */
+  body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;}}
   .sticky-top{{position:sticky;top:0;z-index:100;}}
   header{{background:var(--accent);color:#fff;padding:14px 32px;}}
-  .header-title{{display:flex;align-items:center;gap:10px;}}
-  .logo{{width:24px;height:24px;border-radius:5px;}}
   header h1{{font-size:1.2rem;font-weight:700;}}
   header .meta{{font-size:.78rem;opacity:.8;margin-top:2px;}}
-  nav{{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;gap:2px;}}
-  nav button{{background:none;border:none;padding:12px 12px;font-size:.85rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;font-weight:500;}}
+  nav{{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;gap:2px;overflow-x:auto;}}
+  nav button{{background:none;border:none;padding:12px 10px;font-size:.85rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap;}}
   nav button.active{{color:var(--accent);border-bottom-color:var(--accent);}}
-  /* Main content */
   main{{padding:24px 32px;max-width:1400px;margin:0 auto;}}
   .section{{margin-bottom:48px;}}
   .section h2{{font-size:1.05rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;}}
   .count{{background:var(--accent);color:#fff;font-size:.72rem;padding:2px 8px;border-radius:20px;font-weight:600;}}
-  /* Run date groups */
   .run-group{{margin-bottom:32px;}}
   .run-group-header{{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}}
   .run-date-label{{font-size:.82rem;font-weight:600;color:var(--muted);}}
   .delete-all-btn{{font-size:.75rem;font-weight:600;padding:4px 12px;border-radius:6px;border:1px solid #fca5a5;background:#fef2f2;color:#dc2626;cursor:pointer;}}
-  .delete-all-btn:hover{{background:#fee2e2;}}
-  /* Cards */
   .grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;}}
   .card{{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);transition:opacity .3s;}}
   .card-body{{padding:16px;}}
@@ -1223,22 +1112,23 @@ def generate_html(state, new_ids):
   .price{{font-size:1.1rem;font-weight:700;color:var(--accent);width:100%;}}
   .stat{{font-size:.82rem;color:var(--muted);background:var(--bg);padding:3px 8px;border-radius:4px;}}
   .source-badge{{font-size:.75rem;font-weight:600;padding:3px 8px;border-radius:4px;}}
-  .source-redfin{{background:#fee2e2;color:#991b1b;}}
   .source-zillow{{background:#fef9c3;color:#854d0e;}}
+  .source-redfin{{background:#fee2e2;color:#991b1b;}}
+  .source-realtor-com{{background:#e0f2fe;color:#0c4a6e;}}
   .badges{{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}}
   .badge{{font-size:.75rem;font-weight:600;padding:3px 10px;border-radius:4px;}}
-  .badge-highway{{background:#fef3c7;color:#92400e;}}
-  .badge-road{{background:#fee2e2;color:#991b1b;}}
   .badge-basement-yes{{background:#dcfce7;color:#166534;}}
   .badge-basement-maybe{{background:#fef9c3;color:#854d0e;}}
   .badge-basement-no{{background:#f3f4f6;color:#6b7280;}}
-  .garage-line{{font-size:.8rem;color:var(--muted);margin-bottom:6px;}}
-  .road-line{{font-size:.8rem;color:var(--muted);margin-bottom:8px;}}
+  .badge-highway{{background:#fef3c7;color:#92400e;}}
+  .badge-road{{background:#fee2e2;color:#991b1b;}}
+  .info-line{{font-size:.8rem;color:var(--muted);margin-bottom:6px;}}
+  .christine-pass-indicator{{font-size:.78rem;color:#6b7280;margin-bottom:6px;font-style:italic;}}
   .map-btns{{display:flex;gap:8px;margin-bottom:10px;}}
   .map-btn{{font-size:.78rem;font-weight:600;padding:5px 12px;border-radius:6px;background:#f0f9f4;color:var(--accent);text-decoration:none;border:1px solid #c6e8d5;}}
   .map-btn:hover{{background:#d1f0e0;}}
   .btn-group{{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}}
-  .btn{{border:1px solid var(--border);background:var(--bg);color:var(--muted);padding:6px 14px;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;}}
+  .btn{{border:1px solid var(--border);background:var(--bg);color:var(--muted);padding:6px 14px;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .15s;}}
   .btn:hover{{border-color:#aaa;color:var(--text);}}
   .btn.active{{color:#fff;border-color:transparent;}}
   .btn-favorite.active{{background:#2d6a4f;}}
@@ -1248,234 +1138,409 @@ def generate_html(state, new_ids):
   .btn-christine.active{{background:#e11d48;border-color:transparent;color:#fff;}}
   .btn-christine-pass{{border-color:#d1d5db;color:#6b7280;}}
   .btn-christine-pass.active{{background:#6b7280;border-color:transparent;color:#fff;}}
-  .christine-pass-indicator{{font-size:.78rem;color:#6b7280;margin-bottom:6px;font-style:italic;}}
   .empty{{color:var(--muted);font-size:.9rem;padding:12px 0;}}
   .hidden{{display:none!important;}}
-  /* Toast */
+  #loading{{text-align:center;padding:60px 32px;color:var(--muted);font-size:1rem;}}
+  #error-banner{{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;padding:12px 32px;font-size:.9rem;display:none;}}
+  #stale-banner{{background:#fef9c3;border-bottom:1px solid #fde68a;color:#92400e;padding:10px 32px;font-size:.85rem;text-align:center;display:none;cursor:pointer;}}
   #toast{{position:fixed;bottom:24px;right:24px;background:#1a1a1a;color:#fff;padding:10px 18px;border-radius:8px;font-size:.85rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}}
   #toast.show{{opacity:1;}}
-  /* Scroll-to-top */
+  #toast.error{{background:#c0392b;}}
   #scroll-top{{position:fixed;bottom:72px;right:24px;width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;border:none;font-size:1.1rem;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2);z-index:998;}}
   #scroll-top.visible{{display:flex;}}
-  @media(max-width:600px){{main{{padding:16px;}}header{{padding:12px 16px;}}.grid{{grid-template-columns:1fr;}}nav{{padding:0 4px;gap:0;}}nav button{{padding:10px 6px;font-size:.72rem;}}}}
+  @media(max-width:600px){{main{{padding:16px;}}header{{padding:12px 16px;}}.grid{{grid-template-columns:1fr;}}nav{{padding:0 4px;}}nav button{{padding:10px 6px;font-size:.72rem;}}}}
 </style>
 </head>
 <body>
+<div id="stale-banner" onclick="location.reload()">🔄 New listings available — tap to refresh</div>
 <div class="sticky-top">
   <header>
-    <div class="header-title">
-      <img src="/ranches/favicon-32.png?v=2" alt="" class="logo">
-      <h1>Ranch Finder — Bridgewater, Somerset &amp; Cranford, NJ</h1>
-    </div>
-    <div class="meta">Last run: {run_time} &nbsp;|&nbsp; {unrev_count} unreviewed listing{"s" if unrev_count != 1 else ""}</div>
+    <h1>Ranch Finder — Bridgewater, Somerset &amp; Cranford, NJ</h1>
+    <div class="meta" id="header-meta">Last scrape: {run_time}</div>
   </header>
-  <nav>
-    <button class="active" onclick="showSection('new-this-week',this)">🆕 This Week (<span id="nav-new-this-week">{ntw_count}</span>)</button>
-    <button onclick="showSection('unreviewed',this)">📋 Queue (<span id="nav-unreviewed">{unrev_count}</span>)</button>
-    <button onclick="showSection('favorite',this)">⭐ Favorites (<span id="nav-favorite">{fav_count}</span>)</button>
-    <button onclick="showSection('both',this)">💑 (<span id="nav-both">{both_count}</span>)</button>
-    <button onclick="showSection('think',this)">🤔 Maybe (<span id="nav-think">{think_count}</span>)</button>
+  <nav id="main-nav">
+    <button class="active" onclick="showTab('new-this-week',this)">🆕 This Week (<span id="nav-new-this-week">0</span>)</button>
+    <button onclick="showTab('unreviewed',this)">📋 Queue (<span id="nav-unreviewed">0</span>)</button>
+    <button onclick="showTab('favorite',this)">⭐ Favorites (<span id="nav-favorite">0</span>)</button>
+    <button onclick="showTab('both',this)">💑 (<span id="nav-both">0</span>)</button>
+    <button onclick="showTab('think',this)">🤔 Maybe (<span id="nav-think">0</span>)</button>
   </nav>
 </div>
-<main>{sections_html}</main>
+<div id="error-banner"></div>
+<main>
+  <div id="loading">Loading listings…</div>
+  <div id="tab-new-this-week" class="tab-pane hidden"></div>
+  <div id="tab-unreviewed"    class="tab-pane hidden"></div>
+  <div id="tab-favorite"      class="tab-pane hidden"></div>
+  <div id="tab-both"          class="tab-pane hidden"></div>
+  <div id="tab-think"         class="tab-pane hidden"></div>
+</main>
 <div id="toast"></div>
 <button id="scroll-top" onclick="window.scrollTo({{top:0,behavior:'smooth'}})">↑</button>
+
 <script>
+// ── Constants ────────────────────────────────────────────────────────────────
 const WORKER_URL = "{worker_url}";
-let state = {state_json};
+const DAYS_NEW   = 7;   // listings first_seen within N days appear in "This Week"
 
-// Section nav — Option B: one section at a time
-function showSection(key, btn) {{
-  document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
-  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
-  const sec = document.getElementById("section-" + key);
-  if (sec) sec.classList.remove("hidden");
-  if (btn) btn.classList.add("active");
+// ── State ────────────────────────────────────────────────────────────────────
+let state       = {{}};  // {{id: listing, ...}}
+let loadedSha   = null;  // SHA of state.json at load time
+let activeTab   = "new-this-week";
+let saveQueue   = null;  // pending save timeout handle
+let saving      = false; // save in flight
+
+// ── Boot ─────────────────────────────────────────────────────────────────────
+(async function boot() {{
+  try {{
+    const resp = await fetch(WORKER_URL, {{method:"GET"}});
+    if (!resp.ok) throw new Error("Worker returned " + resp.status);
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+    state     = data.listings || {{}};
+    loadedSha = data.sha || null;
+    document.getElementById("loading").style.display = "none";
+    renderAll();
+    showTab("new-this-week", document.querySelector("nav button"));
+  }} catch(err) {{
+    document.getElementById("loading").style.display = "none";
+    const eb = document.getElementById("error-banner");
+    eb.textContent = "⚠️ Could not load listings: " + err.message + " — try refreshing.";
+    eb.style.display = "block";
+  }}
+}})();
+
+// ── Rendering ────────────────────────────────────────────────────────────────
+function fmtPrice(p) {{
+  if (p == null) return "N/A";
+  if (typeof p === "object") p = p.value || p.amount || p.price;
+  if (p == null) return "N/A";
+  const n = parseFloat(String(p).replace(/,/g,""));
+  if (isNaN(n)) return String(p);
+  return "$" + n.toLocaleString();
 }}
 
-// Count a section's visible (non-deleted, non-hidden) cards
-function countVisible(sectionId) {{
-  const sec = document.getElementById("section-" + sectionId);
-  if (!sec) return 0;
-  return sec.querySelectorAll(".card:not([style*='display: none'])").length;
+function fmtLot(v) {{
+  if (v == null) return "";
+  const s = String(v).trim();
+  if (!s || s === "null") return "";
+  // Already formatted string — return as-is
+  if (isNaN(parseFloat(s.replace(/,/g,"")))) return s;
+  // Raw sqft number
+  const sqft = parseFloat(s.replace(/,/g,""));
+  if (isNaN(sqft)) return s;
+  const acres = (sqft / 43560).toFixed(2);
+  return sqft.toLocaleString() + " sqft (" + acres + " ac)";
 }}
 
-// Update all nav counts from live DOM
-function updateNavCounts() {{
-  const sections = ["new-this-week", "unreviewed", "favorite", "both", "think"];
-  sections.forEach(key => {{
-    const navEl   = document.getElementById("nav-" + key);
-    const countEl = document.getElementById("count-" + key);
-    const n = countVisible(key);
-    if (navEl)   navEl.textContent   = n;
-    if (countEl) countEl.textContent = n;
+function isNewThisWeek(listing) {{
+  const fs = listing.first_seen || listing.run_date || "";
+  if (!fs) return false;
+  const d = new Date(fs + "T00:00:00Z");
+  return (Date.now() - d.getTime()) / 86400000 <= DAYS_NEW;
+}}
+
+function groupByStatus() {{
+  const groups = {{unreviewed:[], favorite:[], both:[], think:[]}};
+  for (const [id, L] of Object.entries(state)) {{
+    const s = L.status || "new";
+    if (s === "deleted") continue;
+    if (s === "favorite") {{
+      if (L.christine_favorite) groups.both.push([id,L]);
+      else groups.favorite.push([id,L]);
+    }} else if (s === "think") {{
+      groups.think.push([id,L]);
+    }} else {{
+      groups.unreviewed.push([id,L]);
+    }}
+  }}
+  // Sort unreviewed: run_date desc, then first_seen desc, then last_modified desc
+  groups.unreviewed.sort((a,b) => {{
+    const rd = (b[1].run_date||b[1].first_seen||"").localeCompare(a[1].run_date||a[1].first_seen||"");
+    if (rd !== 0) return rd;
+    const lm = (b[1].last_modified||"").localeCompare(a[1].last_modified||"");
+    return lm !== 0 ? lm : (b[1].first_seen||"").localeCompare(a[1].first_seen||"");
   }});
+  return groups;
 }}
 
-async function setStatus(lid, newStatus) {{
-  if (!state[lid]) return;
-  state[lid].status = newStatus;
-  // Un-Christine when unfavoriting
-  if (newStatus !== "favorite") {{
-    state[lid].christine_favorite = false;
-    state[lid].christine_pass     = false;
+function renderCard(id, L) {{
+  const status   = L.status || "new";
+  const srcCls   = (L.source||"").toLowerCase().replace(/[.]/g,"-");
+  const srcLabel = L.source || "";
+
+  // Badges
+  let badges = "";
+  const bl = L.basement_label || "";
+  if (bl.startsWith("✅")) badges += `<span class="badge badge-basement-yes">${{bl}}</span>`;
+  else if (bl.startsWith("⚠️")) badges += `<span class="badge badge-basement-maybe">${{bl}}</span>`;
+  else if (bl.startsWith("❌")) badges += `<span class="badge badge-basement-no">${{bl}}</span>`;
+  const hw = L.highway_roads || [];
+  if (hw.length) {{
+    hw.forEach(r => {{
+      const dist = r.distance_miles != null ? ` — ${{r.distance_miles}} mi` : "";
+      badges += `<span class="badge badge-highway">🛣️ ${{r.name}}${{dist}}</span>`;
+    }});
+  }} else if (L.near_highway) {{
+    badges += `<span class="badge badge-highway">🛣️ Near Highway</span>`;
   }}
-  const card = document.getElementById("card-" + lid);
-  if (card) {{
-    card.dataset.status = newStatus;
-    card.querySelectorAll(".btn:not(.btn-christine)").forEach(b => b.classList.remove("active"));
-    const activeBtn = card.querySelector(".btn-" + (newStatus === "deleted" ? "delete" : newStatus));
-    if (activeBtn) activeBtn.classList.add("active");
-    // Show/hide Christine heart based on favorite status
-    const cBtn = card.querySelector(".btn-christine");
-    if (cBtn) cBtn.style.display = newStatus === "favorite" ? "" : "none";
-    if (newStatus === "deleted") {{
-      card.style.opacity = "0.3";
-      setTimeout(() => {{
-        card.style.display = "none";
-        updateNavCounts();
-      }}, 400);
-    }} else {{
-      updateNavCounts();
-    }}
+  if (L.busy_road) badges += `<span class="badge badge-road">⚠️ Busy Road</span>`;
+
+  // Map buttons — address-based fallback (no lat/lng stored yet)
+  const addrEnc = encodeURIComponent(L.address || "");
+  const svUrl   = `https://www.google.com/maps/search/?api=1&query=${{addrEnc}}&layer=streetview`;
+  const satUrl  = `https://www.google.com/maps/search/?api=1&query=${{addrEnc}}&t=k`;
+
+  // John's action buttons — active state + toggle
+  const favActive  = status === "favorite" ? " active" : "";
+  const thinkActive= status === "think"    ? " active" : "";
+  const delActive  = status === "deleted"  ? " active" : "";
+
+  // Christine buttons — only rendered when John has favorited
+  let christineBtns = "";
+  if (status === "favorite") {{
+    const cFav  = L.christine_favorite || false;
+    const cPass = L.christine_pass     || false;
+    const cHeart= cFav  ? "❤️" : "🤍";
+    christineBtns = `
+      <button class="btn btn-christine${{cFav?" active":""}}" onclick="clickChristineHeart('${{id}}')">${{cHeart}} Christine</button>
+      <button class="btn btn-christine-pass${{cPass?" active":""}}" onclick="clickChristinePass('${{id}}')">👎 Not Interested</button>`;
   }}
-  showToast("Saving...");
-  await commitStateToGitHub();
+
+  // Christine pass indicator
+  const passInd = (status === "favorite" && L.christine_pass)
+    ? `<div class="christine-pass-indicator">👎 Christine not interested</div>` : "";
+
+  return `
+<div class="card" id="card-${{id}}" data-id="${{id}}" data-status="${{status}}">
+  <div class="card-body">
+    <h3 class="address"><a href="${{L.url||"#"}}" target="_blank">${{L.address||""}}</a></h3>
+    <div class="stats">
+      <span class="price">${{fmtPrice(L.price)}}</span>
+      <span class="stat">${{L.beds||"?"}} bd</span>
+      <span class="stat">${{L.baths||"?"}} ba</span>
+      ${{L.lot_sqft ? `<span class="stat">${{fmtLot(L.lot_sqft)}}</span>` : ""}}
+      <span class="source-badge source-${{srcCls}}">${{srcLabel}}</span>
+    </div>
+    ${{badges ? `<div class="badges">${{badges}}</div>` : ""}}
+    ${{L.garage_label  ? `<div class="info-line">${{L.garage_label}}</div>`  : ""}}
+    ${{L.property_road ? `<div class="info-line">${{L.property_road}}</div>` : ""}}
+    ${{passInd}}
+    <div class="map-btns">
+      <a href="${{svUrl}}"  target="_blank" class="map-btn">📷 Street View</a>
+      <a href="${{satUrl}}" target="_blank" class="map-btn">🛰️ Satellite</a>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-favorite${{favActive}}"  onclick="setStatus('${{id}}','favorite')">❤️ Favorite</button>
+      <button class="btn btn-think${{thinkActive}}"   onclick="setStatus('${{id}}','think')">🤔 Maybe</button>
+      <button class="btn btn-delete${{delActive}}"    onclick="setStatus('${{id}}','deleted')">🗑️ Delete</button>
+      ${{christineBtns}}
+    </div>
+  </div>
+</div>`;
 }}
 
-async function toggleChristine(lid) {{
-  if (!state[lid]) return;
-  const current = state[lid].christine_favorite || false;
-  state[lid].christine_favorite = !current;
-  // Clicking heart always clears pass
-  state[lid].christine_pass = false;
-  const card = document.getElementById("card-" + lid);
-  if (card) {{
-    card.dataset.christine = String(!current);
-    card.dataset.christinePass = "false";
-    const cBtn = card.querySelector(".btn-christine");
-    if (cBtn) {{
-      cBtn.classList.toggle("active", !current);
-      cBtn.textContent = (!current ? "❤️" : "🤍") + " Christine";
-    }}
-    // Clear pass button active state
-    const pBtn = card.querySelector(".btn-christine-pass");
-    if (pBtn) pBtn.classList.remove("active");
-    // Remove pass indicator if present
-    const ind = card.querySelector(".christine-pass-indicator");
-    if (ind) ind.remove();
-    // Move card between Favorites and Both Love It sections
-    const favSection  = document.getElementById("section-favorite");
-    const bothSection = document.getElementById("section-both");
-    if (!current) {{
-      // Christine just favorited — move to Both Love It
-      const bothGrid = bothSection ? (bothSection.querySelector(".grid") || (() => {{
-        const g = document.createElement("div"); g.className = "grid";
-        bothSection.appendChild(g); return g;
-      }})()) : null;
-      if (bothGrid) bothGrid.appendChild(card);
-    }} else {{
-      // Christine un-favorited — move back to Favorites
-      const favGrid = favSection ? (favSection.querySelector(".grid") || (() => {{
-        const g = document.createElement("div"); g.className = "grid";
-        favSection.appendChild(g); return g;
-      }})()) : null;
-      if (favGrid) favGrid.appendChild(card);
-    }}
-    updateNavCounts();
+function renderAll() {{
+  const groups = groupByStatus();
+  const newThisWeek = groups.unreviewed.filter(([,L]) => isNewThisWeek(L));
+
+  // Tab: New This Week — filtered view, cards NOT moved out of unreviewed
+  const ntwPane = document.getElementById("tab-new-this-week");
+  if (newThisWeek.length === 0) {{
+    ntwPane.innerHTML = '<p class="empty">No new listings this week.</p>';
+  }} else {{
+    ntwPane.innerHTML = `<div class="grid">${{newThisWeek.map(([id,L]) => renderCard(id,L)).join("")}}</div>`;
   }}
-  showToast("Saving...");
-  await commitStateToGitHub();
+
+  // Tab: Unreviewed — grouped by run_date
+  const unrevPane = document.getElementById("tab-unreviewed");
+  if (groups.unreviewed.length === 0) {{
+    unrevPane.innerHTML = '<p class="empty">No unreviewed listings.</p>';
+  }} else {{
+    const byDate = {{}};
+    groups.unreviewed.forEach(([id,L]) => {{
+      const rd = L.run_date || L.first_seen || "Unknown";
+      if (!byDate[rd]) byDate[rd] = [];
+      byDate[rd].push([id,L]);
+    }});
+    unrevPane.innerHTML = Object.entries(byDate).map(([rd,items]) => `
+      <div class="run-group">
+        <div class="run-group-header">
+          <span class="run-date-label">Run: ${{rd}}</span>
+          <button class="delete-all-btn" onclick="deleteAll(${{JSON.stringify(items.map(([id])=>id))}})">Delete All (${{items.length}})</button>
+        </div>
+        <div class="grid">${{items.map(([id,L]) => renderCard(id,L)).join("")}}</div>
+      </div>`).join("");
+  }}
+
+  // Tab: Favorites
+  renderSimpleTab("tab-favorite", groups.favorite, "No favorites yet.");
+
+  // Tab: Both Love It
+  renderSimpleTab("tab-both", groups.both, "Nothing in Both Love It yet.");
+
+  // Tab: Maybe
+  renderSimpleTab("tab-think", groups.think, "Nothing in Maybe yet.");
+
+  updateNavCounts(groups, newThisWeek.length);
 }}
 
-async function christinePass(lid) {{
-  if (!state[lid]) return;
-  const current = state[lid].christine_pass || false;
-  state[lid].christine_pass = !current;
-  // Clicking pass always clears heart
-  state[lid].christine_favorite = false;
-  const card = document.getElementById("card-" + lid);
-  if (card) {{
-    card.dataset.christinePass = String(!current);
-    card.dataset.christine = "false";
-    // Update pass button
-    const pBtn = card.querySelector(".btn-christine-pass");
-    if (pBtn) pBtn.classList.toggle("active", !current);
-    // Reset heart button
-    const cBtn = card.querySelector(".btn-christine");
-    if (cBtn) {{
-      cBtn.classList.remove("active");
-      cBtn.textContent = "🤍 Christine";
-    }}
-    // Show/hide pass indicator on card
-    let ind = card.querySelector(".christine-pass-indicator");
-    if (!current) {{
-      // Just passed — add indicator if not present
-      if (!ind) {{
-        ind = document.createElement("div");
-        ind.className = "christine-pass-indicator";
-        ind.textContent = "👎 Christine not interested";
-        const mapBtns = card.querySelector(".map-btns");
-        if (mapBtns) card.querySelector(".card-body").insertBefore(ind, mapBtns);
-      }}
-    }} else {{
-      // Un-passed — remove indicator
-      if (ind) ind.remove();
-    }}
-    // If card was in Both Love It, move back to Favorites
-    const favSection  = document.getElementById("section-favorite");
-    const bothSection = document.getElementById("section-both");
-    if (card.closest("#section-both")) {{
-      const favGrid = favSection ? (favSection.querySelector(".grid") || (() => {{
-        const g = document.createElement("div"); g.className = "grid";
-        favSection.appendChild(g); return g;
-      }})()) : null;
-      if (favGrid) favGrid.appendChild(card);
-    }}
-    updateNavCounts();
+function renderSimpleTab(paneId, items, emptyMsg) {{
+  const pane = document.getElementById(paneId);
+  if (items.length === 0) {{
+    pane.innerHTML = `<p class="empty">${{emptyMsg}}</p>`;
+  }} else {{
+    pane.innerHTML = `<div class="grid">${{items.map(([id,L]) => renderCard(id,L)).join("")}}</div>`;
   }}
-  showToast("Saving...");
-  await commitStateToGitHub();
+}}
+
+// ── Nav ──────────────────────────────────────────────────────────────────────
+function showTab(key, btn) {{
+  document.querySelectorAll(".tab-pane").forEach(p => p.classList.add("hidden"));
+  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+  const pane = document.getElementById("tab-" + key);
+  if (pane) pane.classList.remove("hidden");
+  if (btn)  btn.classList.add("active");
+  activeTab = key;
+}}
+
+function updateNavCounts(groups, ntwCount) {{
+  if (!groups) {{
+    groups = groupByStatus();
+    ntwCount = groups.unreviewed.filter(([,L]) => isNewThisWeek(L)).length;
+  }}
+  document.getElementById("nav-new-this-week").textContent = ntwCount;
+  document.getElementById("nav-unreviewed").textContent    = groups.unreviewed.length;
+  document.getElementById("nav-favorite").textContent      = groups.favorite.length;
+  document.getElementById("nav-both").textContent          = groups.both.length;
+  document.getElementById("nav-think").textContent         = groups.think.length;
+}}
+
+// ── Button handlers ───────────────────────────────────────────────────────────
+async function setStatus(id, newStatus) {{
+  if (!state[id]) return;
+  const L = state[id];
+  const oldStatus = L.status || "new";
+
+  // Toggle: clicking active button returns card to unreviewed
+  const effectiveStatus = (oldStatus === newStatus && newStatus !== "deleted")
+    ? "new" : newStatus;
+
+  // Delete is one-way — guard against double-click
+  if (oldStatus === "deleted") return;
+
+  // Apply to state
+  L.status = effectiveStatus;
+  if (effectiveStatus !== "favorite") {{
+    L.christine_favorite = false;
+    L.christine_pass     = false;
+  }}
+  L.last_modified = new Date().toISOString();
+
+  // Re-render everything and restore tab position
+  renderAll();
+  showTab(activeTab, document.querySelector(`nav button.active`));
+
+  // Save — field by field (status first, then clear christine fields if needed)
+  await enqueueSave(id, "status", effectiveStatus);
+  if (effectiveStatus !== "favorite" && (oldStatus === "favorite")) {{
+    await enqueueSave(id, "christine_favorite", false);
+    await enqueueSave(id, "christine_pass",     false);
+  }}
+}}
+
+async function clickChristineHeart(id) {{
+  if (!state[id]) return;
+  const L = state[id];
+  const current = L.christine_favorite || false;
+  L.christine_favorite = !current;
+  L.christine_pass     = false;  // mutually exclusive
+  renderAll();
+  showTab(activeTab, document.querySelector("nav button.active"));
+  await enqueueSave(id, "christine_favorite", !current);
+  await enqueueSave(id, "christine_pass",     false);
+}}
+
+async function clickChristinePass(id) {{
+  if (!state[id]) return;
+  const L = state[id];
+  const current = L.christine_pass || false;
+  L.christine_pass     = !current;
+  L.christine_favorite = false;  // mutually exclusive
+  renderAll();
+  showTab(activeTab, document.querySelector("nav button.active"));
+  await enqueueSave(id, "christine_pass",     !current);
+  await enqueueSave(id, "christine_favorite", false);
 }}
 
 async function deleteAll(ids) {{
-  for (const lid of ids) {{
-    if (state[lid]) state[lid].status = "deleted";
-    const card = document.getElementById("card-" + lid);
-    if (card) {{
-      card.style.opacity = "0.3";
-      setTimeout(() => {{ card.style.display = "none"; }}, 400);
+  ids.forEach(id => {{
+    if (state[id] && state[id].status !== "deleted") {{
+      state[id].status        = "deleted";
+      state[id].last_modified = new Date().toISOString();
     }}
+  }});
+  renderAll();
+  showTab(activeTab, document.querySelector("nav button.active"));
+  // Save each deletion sequentially
+  for (const id of ids) {{
+    await enqueueSave(id, "status", "deleted");
   }}
-  setTimeout(updateNavCounts, 500);
-  showToast("Saving...");
-  await commitStateToGitHub();
 }}
 
-async function commitStateToGitHub() {{
+// ── Save queue ────────────────────────────────────────────────────────────────
+// Saves are serialized — each waits for previous to complete
+const _saveQueue = [];
+let   _saveBusy  = false;
+
+async function enqueueSave(id, field, value) {{
+  _saveQueue.push({{id, field, value}});
+  if (!_saveBusy) drainQueue();
+}}
+
+async function drainQueue() {{
+  _saveBusy = true;
+  while (_saveQueue.length > 0) {{
+    const job = _saveQueue.shift();
+    await doSave(job.id, job.field, job.value);
+  }}
+  _saveBusy = false;
+}}
+
+async function doSave(id, field, value) {{
+  showToast("Saving…");
   try {{
     const resp = await fetch(WORKER_URL, {{
-      method: "POST",
-      headers: {{"Content-Type": "application/json"}},
-      body: JSON.stringify({{listings: state}})
+      method:  "POST",
+      headers: {{"Content-Type":"application/json"}},
+      body:    JSON.stringify({{id, field, value}}),
     }});
-    const result = await resp.json();
+    const result = await resp.json().catch(() => ({{}}));
     if (!resp.ok || result.error) throw new Error(result.error || "status " + resp.status);
-    showToast("Saved");
-  }} catch(e) {{
-    console.error(e);
-    showToast("Sync failed — see console");
+
+    showToast("Saved ✓");
+
+    // Check if a new scrape has landed since we loaded
+    if (result.sha && loadedSha && result.sha !== loadedSha) {{
+      document.getElementById("stale-banner").style.display = "block";
+    }}
+    loadedSha = result.sha || loadedSha;
+
+  }} catch(err) {{
+    showToast("Save failed — please retry", true);
+    console.error("Save error:", err);
   }}
 }}
 
-function showToast(msg) {{
+// ── Utilities ─────────────────────────────────────────────────────────────────
+function showToast(msg, isError=false) {{
   const t = document.getElementById("toast");
   t.textContent = msg;
-  t.classList.add("show");
-  setTimeout(() => t.classList.remove("show"), 2500);
+  t.className   = "show" + (isError ? " error" : "");
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.className = "", 2500);
 }}
 
-// Floating scroll-to-top visibility
 window.addEventListener("scroll", () => {{
   const btn = document.getElementById("scroll-top");
   if (window.scrollY > 400) btn.classList.add("visible");
