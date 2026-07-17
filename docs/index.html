@@ -78,7 +78,25 @@
   #toast.error{background:#c0392b;}
   #scroll-top{position:fixed;bottom:72px;right:24px;width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;border:none;font-size:1.1rem;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2);z-index:998;}
   #scroll-top.visible{display:flex;}
-  @media(max-width:600px){main{padding:16px;}header{padding:12px 16px;}.grid{grid-template-columns:1fr;}nav{padding:0 4px;}nav button{padding:10px 6px;font-size:.72rem;}}
+  /* ── Filter bar ── */
+  #filter-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 32px;display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;}
+  #filter-bar.hidden{display:none;}
+  .filter-group{display:flex;flex-direction:column;gap:4px;min-width:120px;}
+  .filter-label{font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+  .filter-range{display:flex;gap:4px;align-items:center;}
+  .filter-range input{width:80px;border:1px solid var(--border);border-radius:5px;padding:4px 7px;font-size:.82rem;background:var(--bg);color:var(--text);}
+  .filter-range span{font-size:.8rem;color:var(--muted);}
+  .filter-checks{display:flex;flex-wrap:wrap;gap:4px;}
+  .filter-check{display:flex;align-items:center;gap:4px;font-size:.8rem;cursor:pointer;white-space:nowrap;}
+  .filter-check input{cursor:pointer;accent-color:var(--accent);}
+  .filter-select select{border:1px solid var(--border);border-radius:5px;padding:4px 7px;font-size:.82rem;background:var(--bg);color:var(--text);cursor:pointer;}
+  #filter-status{font-size:.8rem;color:var(--muted);align-self:flex-end;white-space:nowrap;padding-bottom:2px;}
+  #filter-reset{font-size:.78rem;font-weight:600;padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;align-self:flex-end;}
+  #filter-reset:hover{border-color:#aaa;color:var(--text);}
+  #filter-toggle{font-size:.78rem;font-weight:600;padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;}
+  #filter-toggle.active{border-color:var(--accent);color:var(--accent);background:#f0f9f4;}
+  .filter-towns{display:flex;flex-wrap:wrap;gap:4px;max-width:360px;}
+  @media(max-width:600px){main{padding:16px;}header{padding:12px 16px;}.grid{grid-template-columns:1fr;}nav{padding:0 4px;}nav button{padding:10px 6px;font-size:.72rem;}#filter-bar{padding:10px 12px;gap:10px;}.filter-range input{width:68px;}}
 </style>
 </head>
 <body>
@@ -95,7 +113,61 @@
     <button onclick="showTab('both',this)">💑 (<span id="nav-both">0</span>)</button>
     <button onclick="showTab('think',this)">🤔 Maybe (<span id="nav-think">0</span>)</button>
     <button onclick="showTab('deleted',this)">🗑️ Deleted (<span id="nav-deleted">0</span>)</button>
+    <button id="filter-toggle" onclick="toggleFilterBar(this)" style="margin-left:auto;">🔍 Filter</button>
   </nav>
+  <div id="filter-bar" class="hidden">
+    <!-- Towns — populated dynamically -->
+    <div class="filter-group" id="fg-towns">
+      <span class="filter-label">Town</span>
+      <div class="filter-towns" id="filter-towns"></div>
+    </div>
+    <!-- Price -->
+    <div class="filter-group">
+      <span class="filter-label">Price</span>
+      <div class="filter-range">
+        <input type="number" id="f-price-min" placeholder="Min" step="50000" oninput="applyFilters()">
+        <span>–</span>
+        <input type="number" id="f-price-max" placeholder="Max" step="50000" oninput="applyFilters()">
+      </div>
+    </div>
+    <!-- Lot size -->
+    <div class="filter-group">
+      <span class="filter-label">Lot (acres)</span>
+      <div class="filter-range">
+        <input type="number" id="f-lot-min" placeholder="Min" step="0.1" oninput="applyFilters()">
+        <span>–</span>
+        <input type="number" id="f-lot-max" placeholder="Max" step="0.1" oninput="applyFilters()">
+      </div>
+    </div>
+    <!-- Basement -->
+    <div class="filter-group">
+      <span class="filter-label">Basement</span>
+      <div class="filter-checks" id="fg-basement">
+        <label class="filter-check"><input type="checkbox" value="yes"   onchange="applyFilters()"> ✅ Confirmed</label>
+        <label class="filter-check"><input type="checkbox" value="maybe" onchange="applyFilters()"> ⚠️ Unconfirmed</label>
+        <label class="filter-check"><input type="checkbox" value="no"    onchange="applyFilters()"> ❌ None</label>
+      </div>
+    </div>
+    <!-- Garage -->
+    <div class="filter-group">
+      <span class="filter-label">Garage</span>
+      <div class="filter-checks" id="fg-garage">
+        <label class="filter-check"><input type="checkbox" value="yes" onchange="applyFilters()"> 🚗 Has Garage</label>
+        <label class="filter-check"><input type="checkbox" value="no"  onchange="applyFilters()"> No Garage</label>
+      </div>
+    </div>
+    <!-- Road -->
+    <div class="filter-group">
+      <span class="filter-label">Road</span>
+      <div class="filter-checks" id="fg-road">
+        <label class="filter-check"><input type="checkbox" value="clean"   onchange="applyFilters()"> 🏘️ Clean</label>
+        <label class="filter-check"><input type="checkbox" value="busy"    onchange="applyFilters()"> ⚠️ Busy</label>
+        <label class="filter-check"><input type="checkbox" value="highway" onchange="applyFilters()"> 🛣️ Near Hwy</label>
+      </div>
+    </div>
+    <span id="filter-status"></span>
+    <button id="filter-reset" onclick="resetFilters()">Reset</button>
+  </div>
 </div>
 <div id="error-banner"></div>
 <main>
@@ -133,6 +205,7 @@ let saving      = false; // save in flight
     state     = data.listings || {};
     loadedSha = data.sha || null;
     document.getElementById("loading").style.display = "none";
+    buildTownFilter();
     renderAll();
     showTab("new-this-week", document.querySelector("nav button"));
   } catch(err) {
@@ -284,9 +357,21 @@ function renderCard(id, L) {
 
 function renderAll() {
   const groups = groupByStatus();
-  const newThisWeek = groups.unreviewed.filter(([,L]) => isNewThisWeek(L));
+  const newThisWeekAll = groups.unreviewed.filter(([,L]) => isNewThisWeek(L));
 
-  // Tab: New This Week — filtered view, cards NOT moved out of unreviewed
+  // Apply filters to all non-deleted groups
+  const newThisWeek = filterItems(newThisWeekAll, false);
+  const unreviewed  = filterItems(groups.unreviewed, false);
+  const favorites   = filterItems(groups.favorite, false);
+  const both        = filterItems(groups.both, false);
+  const think       = filterItems(groups.think, false);
+
+  // Update filter status counter
+  const totalNonDel = groups.unreviewed.length + groups.favorite.length + groups.both.length + groups.think.length;
+  const shownNonDel = unreviewed.length + favorites.length + both.length + think.length;
+  updateFilterStatus(shownNonDel, totalNonDel);
+
+  // Tab: New This Week
   const ntwPane = document.getElementById("tab-new-this-week");
   if (newThisWeek.length === 0) {
     ntwPane.innerHTML = '<p class="empty">No new listings this week.</p>';
@@ -296,11 +381,11 @@ function renderAll() {
 
   // Tab: Unreviewed — grouped by run_date
   const unrevPane = document.getElementById("tab-unreviewed");
-  if (groups.unreviewed.length === 0) {
+  if (unreviewed.length === 0) {
     unrevPane.innerHTML = '<p class="empty">No unreviewed listings.</p>';
   } else {
     const byDate = {};
-    groups.unreviewed.forEach(([id,L]) => {
+    unreviewed.forEach(([id,L]) => {
       const rd = L.run_date || L.first_seen || "Unknown";
       if (!byDate[rd]) byDate[rd] = [];
       byDate[rd].push([id,L]);
@@ -316,18 +401,18 @@ function renderAll() {
   }
 
   // Tab: Favorites
-  renderSimpleTab("tab-favorite", groups.favorite, "No favorites yet.");
+  renderSimpleTab("tab-favorite", favorites, "No favorites yet.");
 
   // Tab: Both Love It
-  renderSimpleTab("tab-both", groups.both, "Nothing in Both Love It yet.");
+  renderSimpleTab("tab-both", both, "Nothing in Both Love It yet.");
 
   // Tab: Maybe
-  renderSimpleTab("tab-think", groups.think, "Nothing in Maybe yet.");
+  renderSimpleTab("tab-think", think, "Nothing in Maybe yet.");
 
-  // Tab: Deleted
+  // Tab: Deleted — always unfiltered
   renderSimpleTab("tab-deleted", groups.deleted, "No deleted listings.");
 
-  updateNavCounts(groups, newThisWeek.length);
+  updateNavCounts(groups, newThisWeekAll.length);
 }
 
 function renderSimpleTab(paneId, items, emptyMsg) {
@@ -510,6 +595,163 @@ window.addEventListener("scroll", () => {
   if (window.scrollY > 400) btn.classList.add("visible");
   else btn.classList.remove("visible");
 });
+
+// ── Filters ───────────────────────────────────────────────────────────────────
+
+// Extract city from address string: "123 Main St, Bridgewater, NJ 08807" → "Bridgewater"
+function cityFromAddress(addr) {
+  if (!addr) return "";
+  // Match everything before ", NJ"
+  const m = addr.match(/,\s*([^,]+),\s*NJ\b/i);
+  return m ? m[1].trim() : "";
+}
+
+// Classify basement label
+function basementClass(label) {
+  if (!label) return "no";
+  if (label.startsWith("✅")) return "yes";
+  if (label.startsWith("⚠️")) return "maybe";
+  return "no";
+}
+
+// Classify garage label
+function garageClass(label) {
+  if (!label) return "no";
+  const l = label.toLowerCase();
+  return (l.includes("garage") || l.includes("carport")) ? "yes" : "no";
+}
+
+// Classify road
+function roadClass(L) {
+  const hw = L.highway_roads || [];
+  const busy = L.busy_road || false;
+  const near = L.near_highway || hw.length > 0;
+  if (near) return "highway";
+  if (busy) return "busy";
+  return "clean";
+}
+
+// Parse price to number
+function priceNum(p) {
+  if (p == null) return null;
+  if (typeof p === "object") p = p.value || p.amount || p.price;
+  if (p == null) return null;
+  const n = parseFloat(String(p).replace(/,/g,""));
+  return isNaN(n) ? null : n;
+}
+
+// Parse lot to acres
+function lotAcres(v) {
+  if (v == null) return null;
+  const s = String(v).trim();
+  if (!s || s === "null") return null;
+  const sqft = parseFloat(s.replace(/,/g,""));
+  if (isNaN(sqft)) return null;
+  return sqft / 43560;
+}
+
+// Build town checkboxes from actual data (called once after state loads)
+function buildTownFilter() {
+  const towns = new Set();
+  for (const L of Object.values(state)) {
+    const c = cityFromAddress(L.address);
+    if (c) towns.add(c);
+  }
+  const sorted = [...towns].sort();
+  const container = document.getElementById("filter-towns");
+  container.innerHTML = sorted.map(t =>
+    `<label class="filter-check"><input type="checkbox" value="${t}" onchange="applyFilters()"> ${t}</label>`
+  ).join("");
+}
+
+// Read current filter state
+function getFilters() {
+  const checked = id => [...document.querySelectorAll("#" + id + " input:checked")].map(i => i.value);
+  return {
+    towns:    checked("filter-towns"),
+    priceMin: parseFloat(document.getElementById("f-price-min").value) || null,
+    priceMax: parseFloat(document.getElementById("f-price-max").value) || null,
+    lotMin:   parseFloat(document.getElementById("f-lot-min").value)   || null,
+    lotMax:   parseFloat(document.getElementById("f-lot-max").value)   || null,
+    basement: checked("fg-basement"),
+    garage:   checked("fg-garage"),
+    road:     checked("fg-road"),
+  };
+}
+
+// Returns true if listing passes all active filters
+function passesFilters(L, f) {
+  // Town
+  if (f.towns.length > 0 && !f.towns.includes(cityFromAddress(L.address))) return false;
+  // Price
+  const p = priceNum(L.price);
+  if (f.priceMin !== null && (p === null || p < f.priceMin)) return false;
+  if (f.priceMax !== null && (p === null || p > f.priceMax)) return false;
+  // Lot
+  const ac = lotAcres(L.lot_sqft);
+  if (f.lotMin !== null && (ac === null || ac < f.lotMin)) return false;
+  if (f.lotMax !== null && (ac === null || ac > f.lotMax)) return false;
+  // Basement
+  if (f.basement.length > 0 && !f.basement.includes(basementClass(L.basement_label))) return false;
+  // Garage
+  if (f.garage.length > 0 && !f.garage.includes(garageClass(L.garage_label))) return false;
+  // Road
+  if (f.road.length > 0 && !f.road.includes(roadClass(L))) return false;
+  return true;
+}
+
+// Active filters object — shared between applyFilters and renderAll
+let activeFilters = null;
+
+function applyFilters() {
+  activeFilters = getFilters();
+  const hasAny = activeFilters.towns.length || activeFilters.priceMin || activeFilters.priceMax ||
+                 activeFilters.lotMin || activeFilters.lotMax || activeFilters.basement.length ||
+                 activeFilters.garage.length || activeFilters.road.length;
+  document.getElementById("filter-toggle").classList.toggle("active", !!hasAny);
+  renderAll();
+  showTab(activeTab, document.querySelector("nav button.active"));
+}
+
+function resetFilters() {
+  document.querySelectorAll("#filter-bar input").forEach(i => { if(i.type==="checkbox") i.checked=false; });
+  document.getElementById("f-price-min").value = "";
+  document.getElementById("f-price-max").value = "";
+  document.getElementById("f-lot-min").value   = "";
+  document.getElementById("f-lot-max").value   = "";
+  activeFilters = null;
+  document.getElementById("filter-toggle").classList.remove("active");
+  renderAll();
+  showTab(activeTab, document.querySelector("nav button.active"));
+}
+
+function toggleFilterBar(btn) {
+  const bar = document.getElementById("filter-bar");
+  bar.classList.toggle("hidden");
+}
+
+// Wrap the item list through the filter — skip deleted tab
+function filterItems(items, isDeletedTab) {
+  if (isDeletedTab || !activeFilters) return items;
+  const f = activeFilters;
+  const hasAny = f.towns.length || f.priceMin || f.priceMax ||
+                 f.lotMin || f.lotMax || f.basement.length ||
+                 f.garage.length || f.road.length;
+  if (!hasAny) return items;
+  return items.filter(([,L]) => passesFilters(L, f));
+}
+
+function updateFilterStatus(shown, total) {
+  const el = document.getElementById("filter-status");
+  if (!el) return;
+  if (activeFilters && (activeFilters.towns.length || activeFilters.priceMin || activeFilters.priceMax ||
+      activeFilters.lotMin || activeFilters.lotMax || activeFilters.basement.length ||
+      activeFilters.garage.length || activeFilters.road.length)) {
+    el.textContent = shown + " of " + total + " shown";
+  } else {
+    el.textContent = "";
+  }
+}
 </script>
 </body>
 </html>
