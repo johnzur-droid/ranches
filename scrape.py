@@ -886,13 +886,15 @@ def merge_into_state(state, fresh_listings):
             existing_status = listings[lid].get("status", "new")
             if existing_status in ("favorite", "think", "deleted"):
                 # Preserve user decision — update price + risk flags + labels silently
-                listings[lid]["price"]          = listing["price"]
-                listings[lid]["property_road"]  = listing.get("property_road", "")
-                listings[lid]["busy_road"]      = listing.get("busy_road", False)
-                listings[lid]["near_highway"]   = listing.get("near_highway", False)
-                listings[lid]["highway_roads"]  = listing.get("highway_roads", [])
-                listings[lid]["basement_label"] = listing.get("basement_label", "")
-                listings[lid]["garage_label"]   = listing.get("garage_label", "🚗 Unknown")
+                listings[lid]["price"]             = listing["price"]
+                listings[lid]["property_road"]     = listing.get("property_road", "")
+                listings[lid]["busy_road"]         = listing.get("busy_road", False)
+                listings[lid]["near_highway"]      = listing.get("near_highway", False)
+                listings[lid]["highway_roads"]     = listing.get("highway_roads", [])
+                listings[lid]["basement_label"]    = listing.get("basement_label", "")
+                listings[lid]["garage_label"]      = listing.get("garage_label", "🚗 Unknown")
+                # Never overwrite Christine's decisions on re-scrape
+                # christine_favorite and christine_pass preserved as-is
             else:
                 listing["status"]     = "new"
                 listing["first_seen"] = listings[lid].get("first_seen", today)
@@ -977,15 +979,19 @@ def listing_card_html(lid, listing, status):
             f'onclick="setStatus(\'{lid}\', \'{btn_status}\')">{label}</button>'
         )
 
-    # Christine's heart — only shown when John has favorited
-    christine_fav = listing.get("christine_favorite", False)
-    christine_btn = ""
+    # Christine's buttons — only shown when John has favorited
+    christine_fav  = listing.get("christine_favorite", False)
+    christine_pass = listing.get("christine_pass", False)
+    christine_btns = ""
     if status == "favorite":
-        c_active = "active" if christine_fav else ""
-        c_icon   = "❤️" if christine_fav else "🤍"
-        christine_btn = (
-            f'<button class="btn btn-christine {c_active}" '
-            f'onclick="toggleChristine(\'{lid}\')">{c_icon} Christine</button>'
+        c_heart_active = "active" if christine_fav else ""
+        c_pass_active  = "active" if christine_pass else ""
+        c_heart_icon   = "❤️" if christine_fav else "🤍"
+        christine_btns = (
+            f'<button class="btn btn-christine {c_heart_active}" '
+            f'onclick="toggleChristine(\'{lid}\')">{c_heart_icon} Christine</button>'
+            f'<button class="btn btn-christine-pass {c_pass_active}" '
+            f'onclick="christinePass(\'{lid}\')">👎 Not Interested</button>'
         )
 
     source_cls   = listing.get("source", "").lower()
@@ -996,8 +1002,13 @@ def listing_card_html(lid, listing, status):
     garage_label  = listing.get("garage_label") or ""
     property_road = listing.get("property_road") or ""
 
+    # Christine's pass indicator — shown on card in favorites when she's not interested
+    c_pass_indicator = ""
+    if status == "favorite" and christine_pass:
+        c_pass_indicator = '<div class="christine-pass-indicator">👎 Christine not interested</div>'
+
     return f"""
-<div class="card" id="card-{lid}" data-status="{status}" data-id="{lid}" data-christine="{str(christine_fav).lower()}">
+<div class="card" id="card-{lid}" data-status="{status}" data-id="{lid}" data-christine="{str(christine_fav).lower()}" data-christine-pass="{str(christine_pass).lower()}">
   <div class="card-body">
     <h3 class="address"><a href="{listing.get('url','')}" target="_blank">{listing.get('address','')}</a></h3>
     <div class="stats">
@@ -1010,8 +1021,9 @@ def listing_card_html(lid, listing, status):
     {f'<div class="badges">{badges}</div>' if badges else ''}
     {f'<div class="garage-line">{garage_label}</div>' if garage_label else ''}
     {f'<div class="road-line">{property_road}</div>' if property_road else ''}
+    {c_pass_indicator}
     <div class="map-btns">{maps}</div>
-    <div class="btn-group">{buttons}{christine_btn}</div>
+    <div class="btn-group">{buttons}{christine_btns}</div>
   </div>
 </div>"""
 
@@ -1047,6 +1059,7 @@ def generate_html(state, new_ids):
             if data.get("christine_favorite"):
                 groups["both"].append((lid, data))
             else:
+                # Stays in favorites whether christine_pass is True or False
                 groups["favorite"].append((lid, data))
         elif s == "think":
             groups["think"].append((lid, data))
@@ -1203,6 +1216,9 @@ def generate_html(state, new_ids):
   .btn-delete.active{{background:#c0392b;}}
   .btn-christine{{border-color:#f9a8d4;color:#9d174d;}}
   .btn-christine.active{{background:#e11d48;border-color:transparent;color:#fff;}}
+  .btn-christine-pass{{border-color:#d1d5db;color:#6b7280;}}
+  .btn-christine-pass.active{{background:#6b7280;border-color:transparent;color:#fff;}}
+  .christine-pass-indicator{{font-size:.78rem;color:#6b7280;margin-bottom:6px;font-style:italic;}}
   .empty{{color:var(--muted);font-size:.9rem;padding:12px 0;}}
   .hidden{{display:none!important;}}
   /* Toast */
@@ -1272,6 +1288,7 @@ async function setStatus(lid, newStatus) {{
   // Un-Christine when unfavoriting
   if (newStatus !== "favorite") {{
     state[lid].christine_favorite = false;
+    state[lid].christine_pass     = false;
   }}
   const card = document.getElementById("card-" + lid);
   if (card) {{
@@ -1300,24 +1317,89 @@ async function toggleChristine(lid) {{
   if (!state[lid]) return;
   const current = state[lid].christine_favorite || false;
   state[lid].christine_favorite = !current;
+  // Clicking heart always clears pass
+  state[lid].christine_pass = false;
   const card = document.getElementById("card-" + lid);
   if (card) {{
     card.dataset.christine = String(!current);
+    card.dataset.christinePass = "false";
     const cBtn = card.querySelector(".btn-christine");
     if (cBtn) {{
       cBtn.classList.toggle("active", !current);
       cBtn.textContent = (!current ? "❤️" : "🤍") + " Christine";
     }}
+    // Clear pass button active state
+    const pBtn = card.querySelector(".btn-christine-pass");
+    if (pBtn) pBtn.classList.remove("active");
+    // Remove pass indicator if present
+    const ind = card.querySelector(".christine-pass-indicator");
+    if (ind) ind.remove();
     // Move card between Favorites and Both Love It sections
     const favSection  = document.getElementById("section-favorite");
     const bothSection = document.getElementById("section-both");
     if (!current) {{
-      // Christine just favorited — move card to Both Love It
-      const bothGrid = bothSection ? bothSection.querySelector(".grid") : null;
+      // Christine just favorited — move to Both Love It
+      const bothGrid = bothSection ? (bothSection.querySelector(".grid") || (() => {{
+        const g = document.createElement("div"); g.className = "grid";
+        bothSection.appendChild(g); return g;
+      }})()) : null;
       if (bothGrid) bothGrid.appendChild(card);
     }} else {{
-      // Christine un-favorited — move card back to Favorites
-      const favGrid = favSection ? favSection.querySelector(".grid") : null;
+      // Christine un-favorited — move back to Favorites
+      const favGrid = favSection ? (favSection.querySelector(".grid") || (() => {{
+        const g = document.createElement("div"); g.className = "grid";
+        favSection.appendChild(g); return g;
+      }})()) : null;
+      if (favGrid) favGrid.appendChild(card);
+    }}
+    updateNavCounts();
+  }}
+  showToast("Saving...");
+  await commitStateToGitHub();
+}}
+
+async function christinePass(lid) {{
+  if (!state[lid]) return;
+  const current = state[lid].christine_pass || false;
+  state[lid].christine_pass = !current;
+  // Clicking pass always clears heart
+  state[lid].christine_favorite = false;
+  const card = document.getElementById("card-" + lid);
+  if (card) {{
+    card.dataset.christinePass = String(!current);
+    card.dataset.christine = "false";
+    // Update pass button
+    const pBtn = card.querySelector(".btn-christine-pass");
+    if (pBtn) pBtn.classList.toggle("active", !current);
+    // Reset heart button
+    const cBtn = card.querySelector(".btn-christine");
+    if (cBtn) {{
+      cBtn.classList.remove("active");
+      cBtn.textContent = "🤍 Christine";
+    }}
+    // Show/hide pass indicator on card
+    let ind = card.querySelector(".christine-pass-indicator");
+    if (!current) {{
+      // Just passed — add indicator if not present
+      if (!ind) {{
+        ind = document.createElement("div");
+        ind.className = "christine-pass-indicator";
+        ind.textContent = "👎 Christine not interested";
+        const mapBtns = card.querySelector(".map-btns");
+        if (mapBtns) card.querySelector(".card-body").insertBefore(ind, mapBtns);
+      }}
+    }} else {{
+      // Un-passed — remove indicator
+      if (ind) ind.remove();
+    }}
+    // If card was in Both Love It, move back to Favorites
+    const favSection  = document.getElementById("section-favorite");
+    const bothSection = document.getElementById("section-both");
+    if (card.closest("#section-both")) {{
+      const favGrid = favSection ? (favSection.querySelector(".grid") || (() => {{
+        const g = document.createElement("div"); g.className = "grid";
+        favSection.appendChild(g); return g;
+      }})()) : null;
       if (favGrid) favGrid.appendChild(card);
     }}
     updateNavCounts();
