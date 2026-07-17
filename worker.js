@@ -128,9 +128,13 @@ async function readState(env) {
   if (!resp.ok) {
     throw new Error(`Could not read state.json (${resp.status})`);
   }
-  const data     = await resp.json();
-  const raw      = atob(data.content.replace(/\n/g, ""));
-  const state    = JSON.parse(raw);
+  const data    = await resp.json();
+  // Decode base64 → Uint8Array → UTF-8 string (handles emojis correctly)
+  const b64     = data.content.replace(/\n/g, "");
+  const binary  = atob(b64);
+  const bytes   = Uint8Array.from(binary, c => c.charCodeAt(0));
+  const raw     = new TextDecoder("utf-8").decode(bytes);
+  const state   = JSON.parse(raw);
   return { listings: state.listings || {}, sha: data.sha };
 }
 
