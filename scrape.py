@@ -831,9 +831,16 @@ def process_zillow_area(area):
         if isinstance(lot_info, dict):
             lot_val  = lot_info.get("lotSize")
             lot_unit = (lot_info.get("lotSizeUnit") or "").lower()
-            lot = f"{lot_val} acres" if (lot_val and "acre" in lot_unit) else lot_val
+            if lot_val and "acre" in lot_unit:
+                try: lot = round(float(lot_val) * 43560, 1)
+                except: lot = None
+            else:
+                try: lot = round(float(str(lot_val).replace(",","")), 1) if lot_val else None
+                except: lot = None
         else:
-            lot = r.get("lotAreaValue") or r.get("lot_sqft")
+            raw = r.get("lotAreaValue") or r.get("lot_sqft")
+            try: lot = round(float(str(raw).replace(",","")), 1) if raw else None
+            except: lot = None
 
         # Google Maps enrichment
         risk = check_location_risk(addr, None, None)
