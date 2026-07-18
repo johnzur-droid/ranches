@@ -721,8 +721,10 @@
       "property_road": "🟡 Minor Through-Road (New Dover Road)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "new",
-      "first_seen": "2026-07-16"
+      "status": "deleted",
+      "first_seen": "2026-07-16",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "redfin_36815089": {
       "id": "redfin_36815089",
