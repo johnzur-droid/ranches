@@ -954,8 +954,10 @@
       "property_road": "🏘️ Residential Street (Michelle Street)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "new",
-      "first_seen": "2026-07-16"
+      "status": "deleted",
+      "first_seen": "2026-07-16",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "redfin_36859150": {
       "id": "redfin_36859150",
