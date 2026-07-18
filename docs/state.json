@@ -605,8 +605,10 @@
           "distance_miles": 0.2
         }
       ],
-      "status": "new",
-      "first_seen": "2026-07-16"
+      "status": "deleted",
+      "first_seen": "2026-07-16",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "redfin_37791310": {
       "id": "redfin_37791310",
