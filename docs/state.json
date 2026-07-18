@@ -1111,8 +1111,10 @@
           "distance_miles": 0.07
         }
       ],
-      "status": "new",
-      "first_seen": "2026-07-16"
+      "status": "deleted",
+      "first_seen": "2026-07-16",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "redfin_36761873": {
       "id": "redfin_36761873",
