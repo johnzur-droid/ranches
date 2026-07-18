@@ -2292,9 +2292,11 @@
       "busy_road": false,
       "near_highway": false,
       "highway_roads": [],
-      "status": "new",
+      "status": "deleted",
       "first_seen": "2026-07-17",
-      "run_date": "2026-07-17"
+      "run_date": "2026-07-17",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "redfin_37919213": {
       "id": "redfin_37919213",
