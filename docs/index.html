@@ -434,7 +434,7 @@ function renderAll() {
         <span class="run-date-label">${groups.deleted.length} deleted listing${groups.deleted.length===1?'':'s'}</span>
         <button class="delete-all-btn" onclick="purgeDeleted()">🗑️ Purge All (keep IDs only)</button>
       </div>
-      <div class="grid">${groups.deleted.map(([id,L]) => renderCard(id,L)).join('')}</div>
+      <div class="grid">${groups.deleted.filter(([id,L]) => L.address).map(([id,L]) => renderCard(id,L)).join('')}</div>
     `;
   }
 
