@@ -989,8 +989,10 @@
       "property_road": "🏘️ Residential Street (Newark Avenue)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "new",
-      "first_seen": "2026-07-16"
+      "status": "deleted",
+      "first_seen": "2026-07-16",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "zillow_39875147": {
       "id": "zillow_39875147",
