@@ -1361,11 +1361,13 @@
       "busy_road": false,
       "near_highway": false,
       "highway_roads": [],
-      "status": "new",
+      "status": "think",
       "first_seen": "2026-07-17",
       "run_date": "2026-07-17",
       "photo_url": "https://ssl.cdn-redfin.com/photo/121/islphoto/317/genIslnoResize.4041317_0.jpg",
-      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/121/bigphoto/317/4041317_0.jpg"
+      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/121/bigphoto/317/4041317_0.jpg",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "redfin_37867883": {
       "id": "redfin_37867883",
