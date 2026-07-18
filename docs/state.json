@@ -640,8 +640,10 @@
       "property_road": "🏘️ Residential Street (Park Lane)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "new",
-      "first_seen": "2026-07-16"
+      "status": "deleted",
+      "first_seen": "2026-07-16",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "redfin_36951785": {
       "id": "redfin_36951785",
