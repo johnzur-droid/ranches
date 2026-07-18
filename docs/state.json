@@ -1173,8 +1173,10 @@
       "property_road": "🏘️ Residential Street (Arthur Avenue)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "new",
-      "first_seen": "2026-07-16"
+      "status": "deleted",
+      "first_seen": "2026-07-16",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "redfin_56047782": {
       "id": "redfin_56047782",
