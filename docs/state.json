@@ -1216,8 +1216,10 @@
       "property_road": "🏘️ Residential Street (Stoneham Street)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "new",
-      "first_seen": "2026-07-16"
+      "status": "deleted",
+      "first_seen": "2026-07-16",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "redfin_56018939": {
       "id": "redfin_56018939",
