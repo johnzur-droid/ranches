@@ -2431,9 +2431,11 @@
           "distance_miles": 0.17
         }
       ],
-      "status": "new",
+      "status": "deleted",
       "first_seen": "2026-07-17",
-      "run_date": "2026-07-17"
+      "run_date": "2026-07-17",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "redfin_36362478": {
       "id": "redfin_36362478",
