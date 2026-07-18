@@ -1432,11 +1432,13 @@
       "busy_road": false,
       "near_highway": false,
       "highway_roads": [],
-      "status": "new",
+      "status": "deleted",
       "first_seen": "2026-07-17",
       "run_date": "2026-07-17",
       "photo_url": "https://ssl.cdn-redfin.com/photo/121/islphoto/076/genIslnoResize.4040076_9.jpg",
-      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/121/bigphoto/076/4040076_9.jpg"
+      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/121/bigphoto/076/4040076_9.jpg",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "redfin_37300109": {
       "id": "redfin_37300109",
