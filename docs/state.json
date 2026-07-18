@@ -88,9 +88,11 @@
       "baths": 3,
       "lot_sqft": null,
       "url": "https://www.redfin.com/NJ/Bridgewater/1352-Crim-Rd-08807/home/37788553",
-      "status": "new",
+      "status": "deleted",
       "first_seen": "2026-07-15",
-      "source": "Redfin"
+      "source": "Redfin",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "zillow_39912765": {
       "address": "44 Second St Somerville Boro NJ 08876",
