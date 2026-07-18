@@ -1388,7 +1388,9 @@
       "first_seen": "2026-07-17",
       "run_date": "2026-07-17",
       "photo_url": "https://ssl.cdn-redfin.com/photo/122/islphoto/64R/genIslnoResize.2700964R_0.jpg",
-      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/122/bigphoto/64R/2700964R_0.jpg"
+      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/122/bigphoto/64R/2700964R_0.jpg",
+      "christine_favorite": true,
+      "christine_pass": false
     },
     "redfin_37975796": {
       "id": "redfin_37975796",
