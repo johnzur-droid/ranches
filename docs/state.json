@@ -1460,11 +1460,13 @@
           "distance_miles": 0.17
         }
       ],
-      "status": "new",
+      "status": "deleted",
       "first_seen": "2026-07-17",
       "run_date": "2026-07-17",
       "photo_url": "https://ssl.cdn-redfin.com/photo/121/islphoto/026/genIslnoResize.4041026_2.jpg",
-      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/121/bigphoto/026/4041026_2.jpg"
+      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/121/bigphoto/026/4041026_2.jpg",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "redfin_37736920": {
       "id": "redfin_37736920",
