@@ -72,9 +72,11 @@
       "baths": "2",
       "lot_sqft": 18295,
       "url": "https://www.realtor.com/realestateandhomes-detail/1105-Route202206_Bridgewater-Twp_NJ_08807_M94031-75827",
-      "status": "new",
+      "status": "deleted",
       "first_seen": "2026-07-15",
-      "source": "Realtor.com"
+      "source": "Realtor.com",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "redfin_37788553": {
       "address": "1352 Crim Rd Bridgewater NJ 08807",
