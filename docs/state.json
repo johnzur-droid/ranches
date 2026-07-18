@@ -840,8 +840,10 @@
       "property_road": "🏘️ Residential Street (Elm Street)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "new",
-      "first_seen": "2026-07-16"
+      "status": "deleted",
+      "first_seen": "2026-07-16",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "redfin_36991608": {
       "id": "redfin_36991608",
