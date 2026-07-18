@@ -45,6 +45,25 @@ export default {
     if (request.method === "POST") {
       try {
         const body = await request.json();
+
+        // ── Purge deleted action ──────────────────────────────────────────────
+        if (body.action === 'purge_deleted') {
+          for (let attempt = 0; attempt <= 3; attempt++) {
+            const { listings, sha } = await readState(env);
+            for (const id of Object.keys(listings)) {
+              if (listings[id].status === 'deleted') {
+                listings[id] = { status: 'deleted' };
+              }
+            }
+            const result = await writeState(env, listings, sha);
+            if (result.status === 409 && attempt < 3) { await sleep(200 * (attempt+1)); continue; }
+            if (!result.ok) { const t = await result.text().catch(()=>''); return json({ error: 'Commit failed', detail: t }, 502); }
+            const rd = await result.json();
+            return json({ ok: true, sha: rd?.content?.sha || sha });
+          }
+          return json({ error: 'Max retries exceeded' }, 503);
+        }
+
         const { id, field, value } = body;
 
         // Input validation

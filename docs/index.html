@@ -424,8 +424,19 @@ function renderAll() {
   // Tab: Maybe
   renderSimpleTab("tab-think", think, "Nothing in Maybe yet.");
 
-  // Tab: Deleted — always unfiltered
-  renderSimpleTab("tab-deleted", groups.deleted, "No deleted listings.");
+  // Tab: Deleted — always unfiltered, with Purge All button
+  const delPane = document.getElementById("tab-deleted");
+  if (groups.deleted.length === 0) {
+    delPane.innerHTML = '<p class="empty">No deleted listings.</p>';
+  } else {
+    delPane.innerHTML = `
+      <div class="run-group-header" style="margin-bottom:12px;">
+        <span class="run-date-label">${groups.deleted.length} deleted listing${groups.deleted.length===1?'':'s'}</span>
+        <button class="delete-all-btn" onclick="purgeDeleted()">🗑️ Purge All (keep IDs only)</button>
+      </div>
+      <div class="grid">${groups.deleted.map(([id,L]) => renderCard(id,L)).join('')}</div>
+    `;
+  }
 
   updateNavCounts(groups, newThisWeekAll.length);
 }
@@ -600,6 +611,44 @@ function showToast(msg, isError=false) {
   t.className   = "show" + (isError ? " error" : "");
   clearTimeout(t._timer);
   t._timer = setTimeout(() => t.className = "", 2500);
+}
+
+// ── Purge deleted ────────────────────────────────────────────────────────────
+async function purgeDeleted() {
+  const count = Object.values(state).filter(L => L.status === 'deleted').length;
+  if (!confirm(`Purge ${count} deleted listing(s)? Only IDs will be kept — all other data removed. This cannot be undone.`)) return;
+
+  // Strip all fields except status from deleted listings
+  const purged = [];
+  for (const [id, L] of Object.entries(state)) {
+    if (L.status === 'deleted') {
+      state[id] = { status: 'deleted' };
+      purged.push(id);
+    }
+  }
+
+  if (purged.length === 0) return;
+
+  // Save purged state to GitHub via worker
+  try {
+    saving = true;
+    const resp = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'purge_deleted', ids: purged })
+    });
+    const result = await resp.json();
+    if (!resp.ok || result.error) throw new Error(result.error || 'status ' + resp.status);
+    loadedSha = result.sha || loadedSha;
+    showToast('Purged ✓ — ' + purged.length + ' listings stripped to ID only');
+    renderAll();
+    showTab('deleted', document.querySelector('nav button[onclick*="deleted"]'));
+  } catch(err) {
+    showToast('Purge failed — please retry', true);
+    console.error('Purge error:', err);
+  } finally {
+    saving = false;
+  }
 }
 
 // ── Help menu ────────────────────────────────────────────────────────────────
