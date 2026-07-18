@@ -1397,8 +1397,10 @@
       "property_road": "🏘️ Residential Street (Princeton Road)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "new",
-      "first_seen": "2026-07-16"
+      "status": "think",
+      "first_seen": "2026-07-16",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "redfin_37782394": {
       "id": "redfin_37782394",
