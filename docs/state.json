@@ -101,9 +101,11 @@
       "baths": 2,
       "lot_sqft": 5227,
       "url": "https://www.zillow.com/homedetails/39912765_zpid/",
-      "status": "new",
+      "status": "deleted",
       "first_seen": "2026-07-15",
-      "source": "Zillow"
+      "source": "Zillow",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "redfin_36855599": {
       "id": "redfin_36855599",
