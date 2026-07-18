@@ -1154,8 +1154,10 @@
           "distance_miles": 0.17
         }
       ],
-      "status": "new",
-      "first_seen": "2026-07-16"
+      "status": "deleted",
+      "first_seen": "2026-07-16",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "redfin_36763672": {
       "id": "redfin_36763672",
