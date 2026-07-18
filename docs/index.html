@@ -576,10 +576,7 @@ async function doSave(id, field, value) {
 
     showToast("Saved ✓");
 
-    // Check if a new scrape has landed since we loaded
-    if (result.sha && loadedSha && result.sha !== loadedSha) {
-      document.getElementById("stale-banner").style.display = "block";
-    }
+    // Silently update SHA after our own save — do NOT trigger banner
     loadedSha = result.sha || loadedSha;
 
   } catch(err) {
