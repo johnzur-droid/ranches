@@ -66,7 +66,7 @@
       "source": "Realtor.com"
     },
     "realtor_9403175827": {
-      "address": "1105 Route202206 Bridgewater Twp NJ 08807",
+      "address": "1105 US-202/206 Bridgewater NJ 08807",
       "price": 524700,
       "beds": 3,
       "baths": "2",
@@ -74,7 +74,10 @@
       "url": "https://www.realtor.com/realestateandhomes-detail/1105-Route202206_Bridgewater-Twp_NJ_08807_M94031-75827",
       "status": "new",
       "first_seen": "2026-07-15",
-      "source": "Realtor.com"
+      "source": "Realtor.com",
+      "property_road": "🔴 Primary Arterial (1117-1105 US-202)",
+      "near_highway": false,
+      "highway_roads": []
     },
     "redfin_37788553": {
       "address": "1352 Crim Rd Bridgewater NJ 08807",
@@ -597,7 +600,7 @@
       "property_road": "🏘️ Residential Street (Rutgers Road)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "favorite",
+      "status": "new",
       "first_seen": "2026-07-16"
     },
     "redfin_36811262": {
@@ -619,10 +622,8 @@
           "distance_miles": 0.25
         }
       ],
-      "status": "deleted",
-      "first_seen": "2026-07-16",
-      "christine_favorite": false,
-      "christine_pass": false
+      "status": "new",
+      "first_seen": "2026-07-16"
     },
     "redfin_37802023": {
       "id": "redfin_37802023",
@@ -638,10 +639,8 @@
       "property_road": "🏘️ Residential Street (Park Lane)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "deleted",
-      "first_seen": "2026-07-16",
-      "christine_favorite": false,
-      "christine_pass": false
+      "status": "new",
+      "first_seen": "2026-07-16"
     },
     "redfin_36951785": {
       "id": "redfin_36951785",
@@ -657,10 +656,8 @@
       "property_road": "🏘️ Residential Street (Garfield Place)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "deleted",
-      "first_seen": "2026-07-16",
-      "christine_favorite": false,
-      "christine_pass": false
+      "status": "new",
+      "first_seen": "2026-07-16"
     },
     "redfin_36782444": {
       "id": "redfin_36782444",
@@ -676,10 +673,8 @@
       "property_road": "🏘️ Residential Street (Tall Oaks Drive)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "deleted",
-      "first_seen": "2026-07-16",
-      "christine_favorite": false,
-      "christine_pass": false
+      "status": "new",
+      "first_seen": "2026-07-16"
     },
     "redfin_37033450": {
       "id": "redfin_37033450",
@@ -700,10 +695,8 @@
           "distance_miles": 0.18
         }
       ],
-      "status": "deleted",
-      "first_seen": "2026-07-16",
-      "christine_favorite": false,
-      "christine_pass": false
+      "status": "new",
+      "first_seen": "2026-07-16"
     },
     "redfin_36799700": {
       "id": "redfin_36799700",
@@ -719,10 +712,8 @@
       "property_road": "🟡 Minor Through-Road (New Dover Road)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "deleted",
-      "first_seen": "2026-07-16",
-      "christine_favorite": false,
-      "christine_pass": false
+      "status": "new",
+      "first_seen": "2026-07-16"
     },
     "redfin_36815089": {
       "id": "redfin_36815089",
@@ -743,10 +734,8 @@
           "distance_miles": 0.08
         }
       ],
-      "status": "deleted",
-      "first_seen": "2026-07-16",
-      "christine_favorite": false,
-      "christine_pass": false
+      "status": "new",
+      "first_seen": "2026-07-16"
     },
     "redfin_37935952": {
       "id": "redfin_37935952",
@@ -762,10 +751,8 @@
       "property_road": "🏘️ Residential Street (Platz Drive)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "deleted",
-      "first_seen": "2026-07-16",
-      "christine_favorite": false,
-      "christine_pass": false
+      "status": "new",
+      "first_seen": "2026-07-16"
     },
     "redfin_36824472": {
       "id": "redfin_36824472",
@@ -781,10 +768,8 @@
       "property_road": "🏘️ Residential Street (Hampton Street)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "deleted",
-      "first_seen": "2026-07-16",
-      "christine_favorite": false,
-      "christine_pass": false
+      "status": "new",
+      "first_seen": "2026-07-16"
     },
     "redfin_37802820": {
       "id": "redfin_37802820",
@@ -800,10 +785,8 @@
       "property_road": "🏘️ Residential Street (Nassau Street)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "deleted",
-      "first_seen": "2026-07-16",
-      "christine_favorite": false,
-      "christine_pass": false
+      "status": "new",
+      "first_seen": "2026-07-16"
     },
     "redfin_36781523": {
       "id": "redfin_36781523",
@@ -819,10 +802,8 @@
       "property_road": "🏘️ Residential Street (Packard Road)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "deleted",
-      "first_seen": "2026-07-16",
-      "christine_favorite": false,
-      "christine_pass": false
+      "status": "new",
+      "first_seen": "2026-07-16"
     },
     "redfin_37063447": {
       "id": "redfin_37063447",
@@ -838,10 +819,8 @@
       "property_road": "🏘️ Residential Street (Elm Street)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "deleted",
-      "first_seen": "2026-07-16",
-      "christine_favorite": false,
-      "christine_pass": false
+      "status": "new",
+      "first_seen": "2026-07-16"
     },
     "redfin_36991608": {
       "id": "redfin_36991608",
@@ -857,10 +836,8 @@
       "property_road": "🟡 Minor Through-Road (Old Bridge Turnpike)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "deleted",
-      "first_seen": "2026-07-16",
-      "christine_favorite": false,
-      "christine_pass": false
+      "status": "new",
+      "first_seen": "2026-07-16"
     },
     "redfin_36818356": {
       "id": "redfin_36818356",
@@ -876,10 +853,8 @@
       "property_road": "🏘️ Residential Street (North 13th Street)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "deleted",
-      "first_seen": "2026-07-16",
-      "christine_favorite": false,
-      "christine_pass": false
+      "status": "new",
+      "first_seen": "2026-07-16"
     },
     "redfin_36801040": {
       "id": "redfin_36801040",
@@ -895,10 +870,8 @@
       "property_road": "🏘️ Residential Street (Foley Avenue)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "deleted",
-      "first_seen": "2026-07-16",
-      "christine_favorite": false,
-      "christine_pass": false
+      "status": "new",
+      "first_seen": "2026-07-16"
     },
     "redfin_36986031": {
       "id": "redfin_36986031",
@@ -914,10 +887,8 @@
       "property_road": "🏘️ Residential Street (Fleet Avenue)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "deleted",
-      "first_seen": "2026-07-16",
-      "christine_favorite": false,
-      "christine_pass": false
+      "status": "new",
+      "first_seen": "2026-07-16"
     },
     "redfin_36803233": {
       "id": "redfin_36803233",
@@ -933,10 +904,8 @@
       "property_road": "🏘️ Residential Street (Kazcmar Court)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "deleted",
-      "first_seen": "2026-07-16",
-      "christine_favorite": false,
-      "christine_pass": false
+      "status": "new",
+      "first_seen": "2026-07-16"
     },
     "redfin_36847646": {
       "id": "redfin_36847646",
@@ -952,10 +921,8 @@
       "property_road": "🏘️ Residential Street (Michelle Street)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "deleted",
-      "first_seen": "2026-07-16",
-      "christine_favorite": false,
-      "christine_pass": false
+      "status": "new",
+      "first_seen": "2026-07-16"
     },
     "redfin_36859150": {
       "id": "redfin_36859150",
@@ -968,10 +935,8 @@
       "source": "Redfin",
       "near_highway": false,
       "near_industrial": true,
-      "status": "deleted",
-      "first_seen": "2026-07-16",
-      "christine_favorite": false,
-      "christine_pass": false
+      "status": "new",
+      "first_seen": "2026-07-16"
     },
     "redfin_36993904": {
       "id": "redfin_36993904",
@@ -987,10 +952,8 @@
       "property_road": "🏘️ Residential Street (Newark Avenue)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "deleted",
-      "first_seen": "2026-07-16",
-      "christine_favorite": false,
-      "christine_pass": false
+      "status": "new",
+      "first_seen": "2026-07-16"
     },
     "zillow_39875147": {
       "id": "zillow_39875147",
@@ -1006,10 +969,8 @@
       "property_road": "🏘️ Residential Street (Belmar Street)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "deleted",
-      "first_seen": "2026-07-16",
-      "christine_favorite": false,
-      "christine_pass": false
+      "status": "new",
+      "first_seen": "2026-07-16"
     },
     "zillow_39872209": {
       "id": "zillow_39872209",
@@ -1025,10 +986,8 @@
       "property_road": "🟠 Secondary Road (Amwell Road)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "deleted",
-      "first_seen": "2026-07-16",
-      "christine_favorite": false,
-      "christine_pass": false
+      "status": "new",
+      "first_seen": "2026-07-16"
     },
     "redfin_56023699": {
       "id": "redfin_56023699",
