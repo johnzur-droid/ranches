@@ -1340,8 +1340,10 @@
           "distance_miles": 0.11
         }
       ],
-      "status": "new",
-      "first_seen": "2026-07-16"
+      "status": "deleted",
+      "first_seen": "2026-07-16",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "redfin_56090412": {
       "id": "redfin_56090412",
