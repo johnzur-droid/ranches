@@ -46,7 +46,6 @@
   .badge-basement-maybe{background:#fef9c3;color:#854d0e;}
   .badge-basement-no{background:#f3f4f6;color:#6b7280;}
   .badge-highway{background:#fef3c7;color:#92400e;}
-  .badge-road{background:#fee2e2;color:#991b1b;}
   .info-line{font-size:.8rem;color:var(--muted);margin-bottom:6px;}
   .christine-pass-indicator{font-size:.78rem;color:#6b7280;margin-bottom:6px;font-style:italic;}
   .map-btns{display:flex;gap:8px;margin-bottom:10px;}
@@ -309,7 +308,6 @@ function renderCard(id, L) {
   if (bl.startsWith("✅")) badges += `<span class="badge badge-basement-yes">${bl}</span>`;
   else if (bl.startsWith("⚠️")) badges += `<span class="badge badge-basement-maybe">${bl}</span>`;
   else if (bl.startsWith("❌")) badges += `<span class="badge badge-basement-no">${bl}</span>`;
-  if (L.busy_road) badges += `<span class="badge badge-road">⚠️ Busy Road</span>`;
 
   // Map buttons — address-based fallback (no lat/lng stored yet)
   const addrEnc = encodeURIComponent(L.address || "");

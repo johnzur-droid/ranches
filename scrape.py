@@ -191,15 +191,12 @@ def check_location_risk(address, lat, lng):
     Run location risk checks for a confirmed listing.
     Returns dict with keys:
       property_road:  str — human-readable road classification of property's street
-      busy_road:      bool
       near_highway:   bool
       highway_roads:  list of {name, distance_miles} sorted by distance
     All empty/False if Maps key not set or geocoding fails.
     """
     result = {
-        "property_road": "",
-        "busy_road":     False,
-        "near_highway":  False,
+        "property_road": "",        "near_highway":  False,
         "highway_roads": [],
     }
 
@@ -248,7 +245,6 @@ def check_location_risk(address, lat, lng):
                     "distance_miles": round(dist, 2) if dist is not None else None,
                 })
             if any(kw in name_lower for kw in HIGHWAY_KEYWORDS):
-                result["busy_road"] = True
 
     result["highway_roads"].sort(
         key=lambda r: r["distance_miles"] if r["distance_miles"] is not None else 999
@@ -599,9 +595,7 @@ def process_redfin_area(area):
             "photo_url_hires":  photo_url_hires,
             "basement_label":   basement_label,
             "garage_label":     garage_label,
-            "property_road":    risk["property_road"],
-            "busy_road":        risk["busy_road"],
-            "near_highway":     risk["near_highway"],
+            "property_road":    risk["property_road"],            "near_highway":     risk["near_highway"],
             "highway_roads":    risk["highway_roads"],
         })
         print(f"    PASS: {addr} {fmt_price(price)} | {basement_label or 'no basement data'} | {garage_label} | {risk['property_road'] or 'road unknown'}")
@@ -871,9 +865,7 @@ def process_zillow_area(area):
             "photo_url_hires":  photo_url_hires,
             "basement_label":   basement_label,
             "garage_label":     garage_label,
-            "property_road":    risk["property_road"],
-            "busy_road":        risk["busy_road"],
-            "near_highway":     risk["near_highway"],
+            "property_road":    risk["property_road"],            "near_highway":     risk["near_highway"],
             "highway_roads":    risk["highway_roads"],
         })
         print(f"    PASS: {addr} {fmt_price(price)} | {basement_label or 'no basement data'} | {garage_label} | {risk['property_road'] or 'road unknown'}")
@@ -946,9 +938,7 @@ def merge_into_state(state, fresh_listings):
             if existing_status in ("favorite", "think", "deleted"):
                 # Preserve user decision — update price + risk flags + labels silently
                 listings[lid]["price"]             = listing["price"]
-                listings[lid]["property_road"]     = listing.get("property_road", "")
-                listings[lid]["busy_road"]         = listing.get("busy_road", False)
-                listings[lid]["near_highway"]      = listing.get("near_highway", False)
+                listings[lid]["property_road"]     = listing.get("property_road", "")                listings[lid]["near_highway"]      = listing.get("near_highway", False)
                 listings[lid]["highway_roads"]     = listing.get("highway_roads", [])
                 listings[lid]["basement_label"]    = listing.get("basement_label", "")
                 listings[lid]["garage_label"]      = listing.get("garage_label", "🚗 Unknown")
@@ -996,10 +986,7 @@ def _DELETED_risk_badges(listing):
             dist_str = f" — {dist} mi" if dist is not None else ""
             badges += f'<span class="badge badge-highway">🛣️ {name}{dist_str}</span>'
     elif listing.get("near_highway"):
-        badges += '<span class="badge badge-highway">🛣️ Near Highway</span>'
-    if listing.get("busy_road"):
-        badges += '<span class="badge badge-road">⚠️ Busy Road</span>'
-    return badges
+        badges += '<span class="badge badge-highway">🛣️ Near Highway</span>'    return badges
 
 
 def map_buttons(listing):
@@ -1328,7 +1315,6 @@ function renderCard(id, L) {{
   }} else if (L.near_highway) {{
     badges += `<span class="badge badge-highway">🛣️ Near Highway</span>`;
   }}
-  if (L.busy_road) badges += `<span class="badge badge-road">⚠️ Busy Road</span>`;
 
   // Map buttons — address-based fallback (no lat/lng stored yet)
   const addrEnc = encodeURIComponent(L.address || "");
