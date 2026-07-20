@@ -606,7 +606,9 @@
       "near_highway": false,
       "highway_roads": [],
       "status": "favorite",
-      "first_seen": "2026-07-16"
+      "first_seen": "2026-07-16",
+      "christine_pass": true,
+      "christine_favorite": false
     },
     "redfin_36811262": {
       "id": "redfin_36811262",
