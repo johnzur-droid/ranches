@@ -1830,10 +1830,10 @@
       "property_road": "🏘️ Residential Street (Belmar Street)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "favorite",
+      "status": "think",
       "first_seen": "2026-07-17",
       "run_date": "2026-07-17",
-      "christine_pass": true,
+      "christine_pass": false,
       "christine_favorite": false
     },
     "redfin_37790185": {
