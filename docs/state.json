@@ -20,11 +20,13 @@
       "baths": "2.5",
       "lot_sqft": 37026,
       "url": "https://www.realtor.com/realestateandhomes-detail/653-Foothill-Rd_Bridgewater_NJ_08807_M57360-63451",
-      "status": "favorite",
+      "status": "deleted",
       "first_seen": "2026-07-15",
       "source": "Realtor.com",
       "photo_url": "https://photos.zillowstatic.com/fp/049755b31a31203dbbbc6c2529f65c05-p_c.jpg",
-      "photo_url_hires": "https://photos.zillowstatic.com/fp/049755b31a31203dbbbc6c2529f65c05-uncropped_scaled_within_1344_1008.jpg"
+      "photo_url_hires": "https://photos.zillowstatic.com/fp/049755b31a31203dbbbc6c2529f65c05-uncropped_scaled_within_1344_1008.jpg",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "realtor_5716817257": {
       "address": "1813 Washington Valley Rd Bridgewater Twp NJ 08836",
