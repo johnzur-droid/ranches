@@ -1,18 +1,5 @@
 {
   "listings": {
-    "realtor_5509849733": {
-      "address": "1280 Oxford Rd Bridgewater Twp NJ 08807",
-      "price": 749999,
-      "beds": 3,
-      "baths": "2",
-      "lot_sqft": 32234,
-      "url": "https://www.realtor.com/realestateandhomes-detail/1280-Oxford-Rd_Bridgewater_NJ_08807_M55098-49733",
-      "status": "think",
-      "first_seen": "2026-07-15",
-      "source": "Realtor.com",
-      "christine_favorite": false,
-      "christine_pass": false
-    },
     "realtor_5736063451": {
       "address": "653 Foothill Rd Bridgewater Twp NJ 08807",
       "price": 675000,
@@ -364,23 +351,6 @@
       "first_seen": "2026-07-16",
       "christine_favorite": false,
       "christine_pass": false
-    },
-    "zillow_39864242": {
-      "id": "zillow_39864242",
-      "address": "1280 Oxford Rd Bridgewater Twp. NJ 08807",
-      "price": 749999,
-      "beds": 3,
-      "baths": 2,
-      "lot_sqft": 32234.4,
-      "url": "https://www.zillow.com/homedetails/39864242_zpid/",
-      "source": "Zillow",
-      "basement_label": "✅ Unfinished Basement",
-      "garage_label": "🚗 2-car attached garage",
-      "property_road": "🏘️ Residential Street (Oxford Road)",
-      "near_highway": false,
-      "highway_roads": [],
-      "status": "favorite",
-      "first_seen": "2026-07-16"
     },
     "zillow_39864179": {
       "id": "zillow_39864179",

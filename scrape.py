@@ -336,6 +336,7 @@ def normalize_address(addr):
     if not addr:
         return ""
     a = addr.lower()
+    a = re.sub(r"\b(\d{5})-\d{4}\b", r"\1", a)  # strip zip+4
     a = re.sub(r"[^\w\s]", "", a)
     a = re.sub(r"\s+", " ", a).strip()
     a = re.sub(r"\brd\b",       "road",      a)
