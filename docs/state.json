@@ -593,7 +593,9 @@
         }
       ],
       "status": "favorite",
-      "first_seen": "2026-07-16"
+      "first_seen": "2026-07-16",
+      "christine_pass": true,
+      "christine_favorite": false
     },
     "redfin_37791310": {
       "id": "redfin_37791310",
