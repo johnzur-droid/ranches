@@ -1,0 +1,13 @@
+{
+  "name": "Ranch Finder — Bridgewater, Somerset & Cranford, NJ",
+  "short_name": "Ranch Finder",
+  "description": "Private ranch home search tool for NJ listings with basement filtering",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f6f3",
+  "theme_color": "#2d6a4f",
+  "icons": [
+    { "src": "/favicon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/favicon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
