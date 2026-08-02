@@ -398,10 +398,10 @@
       "property_road": "🏘️ Residential Street (Benjamin Street)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "favorite",
+      "status": "deleted",
       "first_seen": "2026-07-17",
       "run_date": "2026-07-17",
-      "christine_pass": true,
+      "christine_pass": false,
       "christine_favorite": false
     },
     "redfin_37301336": {
