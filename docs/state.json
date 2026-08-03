@@ -1154,9 +1154,11 @@
       "property_road": "🏘️ Residential Street (Old Army Road)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "new",
+      "status": "deleted",
       "first_seen": "2026-08-03",
-      "run_date": "2026-08-03"
+      "run_date": "2026-08-03",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "redfin_36925514": {
       "id": "redfin_36925514",
