@@ -1222,9 +1222,11 @@
       "property_road": "🏘️ Residential Street (Bertram Avenue)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "new",
+      "status": "deleted",
       "first_seen": "2026-08-03",
-      "run_date": "2026-08-03"
+      "run_date": "2026-08-03",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "redfin_37743346": {
       "id": "redfin_37743346",
