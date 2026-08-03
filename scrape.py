@@ -106,6 +106,7 @@ def town_is_blacklisted(address):
 MIN_BEDS  = 3      # confirmed S003
 MIN_BATHS = 2.0
 MAX_PRICE = 1_000_000
+MIN_SQFT  = 1500   # drop listings where sqft is known AND below this
 
 # Quarter mile in meters for Google Maps proximity checks
 PROXIMITY_METERS = 402
@@ -605,6 +606,10 @@ def process_redfin_area(area):
             print(f"    skip (blacklisted town): {addr}")
             continue
 
+        if home_sqft and home_sqft < MIN_SQFT:
+            print(f"    skip (too small: {home_sqft} sqft): {addr}")
+            continue
+
         if not is_ranch:
             print(f"    skip (not ranch): {addr}")
             continue
@@ -881,6 +886,10 @@ def process_zillow_area(area):
 
         if town_is_blacklisted(addr):
             print(f"    skip (blacklisted town): {addr}")
+            continue
+
+        if zl_home_sqft and zl_home_sqft < MIN_SQFT:
+            print(f"    skip (too small: {zl_home_sqft} sqft): {addr}")
             continue
 
         # Distance post-filter — drop listings outside 12 miles of any town center
