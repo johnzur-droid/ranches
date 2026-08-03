@@ -611,6 +611,14 @@ def process_redfin_area(area):
 
         lot_info = r.get("lotSize") or {}
         lot = lot_info.get("amount") if isinstance(lot_info, dict) else lot_info
+        # Home sqft — from search result
+        home_sqft = None
+        for _sqk in ["sqFt","squareFeet","finishedSqFt","livingArea","homeSize"]:
+            _sqv = r.get(_sqk)
+            if _sqv is not None:
+                try: home_sqft = float(str(_sqv).replace(",",""))
+                except: pass
+                if home_sqft: break
 
         rel_url  = r.get("url") or r.get("href") or r.get("detailUrl") or ""
         full_url = f"https://www.redfin.com{rel_url}" if rel_url.startswith("/") else rel_url
@@ -634,6 +642,7 @@ def process_redfin_area(area):
             "beds":             beds,
             "baths":            baths,
             "lot_sqft":         lot,
+            "home_sqft":        home_sqft,
             "url":              full_url,
             "source":           "Redfin",
             "photo_url":        photo_url,
@@ -858,6 +867,16 @@ def process_zillow_area(area):
         details = zillow_details(zpid)
         is_ranch, basement_label, garage_label = zillow_is_ranch(details)
 
+        # Home sqft from Zillow details resoFacts
+        zl_home_sqft = None
+        _zrf = (details.get("propertyDetails") or details).get("resoFacts") or {}
+        for _sqk in ["livingArea","aboveGradeFinishedArea","finishedArea"]:
+            _sqv = _zrf.get(_sqk)
+            if _sqv is not None:
+                try: zl_home_sqft = float(str(_sqv).replace(",","").split()[0])
+                except: pass
+                if zl_home_sqft: break
+
         addr = zillow_fmt_address(r)
 
         if town_is_blacklisted(addr):
@@ -915,6 +934,7 @@ def process_zillow_area(area):
             "beds":             beds,
             "baths":            baths,
             "lot_sqft":         lot,
+            "home_sqft":        zl_home_sqft,
             "url":              f"https://www.zillow.com/homedetails/{zpid}_zpid/",
             "source":           "Zillow",
             "photo_url":        photo_url,
@@ -999,6 +1019,7 @@ def merge_into_state(state, fresh_listings):
                 listings[lid]["highway_roads"]     = listing.get("highway_roads", [])
                 listings[lid]["basement_label"]    = listing.get("basement_label", "")
                 listings[lid]["garage_label"]      = listing.get("garage_label", "🚗 Unknown")
+                if listing.get("home_sqft"):  listings[lid]["home_sqft"] = listing["home_sqft"]
                 # Never overwrite Christine's decisions on re-scrape
                 # christine_favorite and christine_pass preserved as-is
             else:
