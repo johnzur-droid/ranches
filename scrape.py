@@ -1181,7 +1181,7 @@ def generate_html(state, new_ids):
 
 def _shell_html(run_time, worker_url):
     """Pure shell — no listings embedded. All data fetched live from worker."""
-    return f"""<!DOCTYPE html>
+    html = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1191,77 +1191,100 @@ def _shell_html(run_time, worker_url):
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/favicon-180.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#2d6a4f">
 <style>
-  :root{{--bg:#f7f6f3;--surface:#fff;--border:#e2e0db;--text:#1a1a1a;--muted:#6b6b6b;--accent:#2d6a4f;--radius:10px;--shadow:0 2px 8px rgba(0,0,0,.08);}}
-  *{{box-sizing:border-box;margin:0;padding:0;}}
-  body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;}}
-  .sticky-top{{position:sticky;top:0;z-index:100;}}
-  header{{background:var(--accent);color:#fff;padding:14px 32px;}}
-  header h1{{font-size:1.2rem;font-weight:700;}}
-  header .meta{{font-size:.78rem;opacity:.8;margin-top:2px;}}
-  nav{{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;gap:2px;overflow-x:auto;}}
-  nav button{{background:none;border:none;padding:12px 10px;font-size:.85rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap;}}
-  nav button.active{{color:var(--accent);border-bottom-color:var(--accent);}}
-  main{{padding:24px 32px;max-width:1400px;margin:0 auto;}}
-  .section{{margin-bottom:48px;}}
-  .section h2{{font-size:1.05rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;}}
-  .count{{background:var(--accent);color:#fff;font-size:.72rem;padding:2px 8px;border-radius:20px;font-weight:600;}}
-  .run-group{{margin-bottom:32px;}}
-  .run-group-header{{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}}
-  .run-date-label{{font-size:.82rem;font-weight:600;color:var(--muted);}}
-  .delete-all-btn{{font-size:.75rem;font-weight:600;padding:4px 12px;border-radius:6px;border:1px solid #fca5a5;background:#fef2f2;color:#dc2626;cursor:pointer;}}
-  .grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;}}
-  .card{{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);transition:opacity .3s;}}
-  .card-body{{padding:16px;}}
-  .address{{font-size:.95rem;font-weight:600;margin-bottom:10px;line-height:1.3;}}
-  .address a{{color:var(--text);text-decoration:none;}}
-  .address a:hover{{color:var(--accent);text-decoration:underline;}}
-  .stats{{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}}
-  .price{{font-size:1.1rem;font-weight:700;color:var(--accent);width:100%;}}
-  .stat{{font-size:.82rem;color:var(--muted);background:var(--bg);padding:3px 8px;border-radius:4px;}}
-  .source-badge{{font-size:.75rem;font-weight:600;padding:3px 8px;border-radius:4px;}}
-  .source-zillow{{background:#fef9c3;color:#854d0e;}}
-  .source-redfin{{background:#fee2e2;color:#991b1b;}}
-  .source-realtor-com{{background:#e0f2fe;color:#0c4a6e;}}
-  .badges{{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}}
-  .badge{{font-size:.75rem;font-weight:600;padding:3px 10px;border-radius:4px;}}
-  .badge-basement-yes{{background:#dcfce7;color:#166534;}}
-  .badge-basement-maybe{{background:#fef9c3;color:#854d0e;}}
-  .badge-basement-no{{background:#f3f4f6;color:#6b7280;}}
-  .badge-highway{{background:#fef3c7;color:#92400e;}}
-  .badge-road{{background:#fee2e2;color:#991b1b;}}
-  .info-line{{font-size:.8rem;color:var(--muted);margin-bottom:6px;}}
-  .christine-pass-indicator{{font-size:.78rem;color:#6b7280;margin-bottom:6px;font-style:italic;}}
-  .map-btns{{display:flex;gap:8px;margin-bottom:10px;}}
-  .map-btn{{font-size:.78rem;font-weight:600;padding:5px 12px;border-radius:6px;background:#f0f9f4;color:var(--accent);text-decoration:none;border:1px solid #c6e8d5;}}
-  .map-btn:hover{{background:#d1f0e0;}}
-  .btn-group{{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}}
-  .btn{{border:1px solid var(--border);background:var(--bg);color:var(--muted);padding:6px 14px;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .15s;}}
-  .btn:hover{{border-color:#aaa;color:var(--text);}}
-  .btn.active{{color:#fff;border-color:transparent;}}
-  .btn-favorite.active{{background:#2d6a4f;}}
-  .btn-think.active{{background:#7b68ee;}}
-  .btn-delete.active{{background:#c0392b;}}
-  .btn-restore{{border-color:#86efac;color:#166534;}}
-  .btn-restore:hover{{background:#dcfce7;}}
-  .btn-christine.active{{background:#e11d48;border-color:transparent;color:#fff;}}
-  .btn-christine-pass{{border-color:#d1d5db;color:#6b7280;}}
-  .btn-christine-pass.active{{background:#6b7280;border-color:transparent;color:#fff;}}
-  .empty{{color:var(--muted);font-size:.9rem;padding:12px 0;}}
-  .hidden{{display:none!important;}}
-  .card-photo{{width:100%;height:180px;object-fit:cover;cursor:pointer;display:block;border-bottom:1px solid var(--border);}}
-  .card-photo-placeholder{{width:100%;height:60px;background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.8rem;}}
-  #lightbox{{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;align-items:center;justify-content:center;cursor:pointer;}}
-  #lightbox.open{{display:flex;}}
-  #lightbox img{{max-width:95vw;max-height:95vh;object-fit:contain;border-radius:6px;}}
-  #error-banner{{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;padding:12px 32px;font-size:.9rem;display:none;}}
-  #stale-banner{{background:#fef9c3;border-bottom:1px solid #fde68a;color:#92400e;padding:10px 32px;font-size:.85rem;text-align:center;display:none;cursor:pointer;}}
-  #toast{{position:fixed;bottom:24px;right:24px;background:#1a1a1a;color:#fff;padding:10px 18px;border-radius:8px;font-size:.85rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}}
-  #toast.show{{opacity:1;}}
-  #toast.error{{background:#c0392b;}}
-  #scroll-top{{position:fixed;bottom:72px;right:24px;width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;border:none;font-size:1.1rem;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2);z-index:998;}}
-  #scroll-top.visible{{display:flex;}}
-  @media(max-width:600px){{main{{padding:16px;}}header{{padding:12px 16px;}}.grid{{grid-template-columns:1fr;}}nav{{padding:0 4px;}}nav button{{padding:10px 6px;font-size:.72rem;}}}}
+  :root{--bg:#f7f6f3;--surface:#fff;--border:#e2e0db;--text:#1a1a1a;--muted:#6b6b6b;--accent:#2d6a4f;--radius:10px;--shadow:0 2px 8px rgba(0,0,0,.08);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;}
+  .sticky-top{position:sticky;top:0;z-index:100;}
+  header{background:var(--accent);color:#fff;padding:14px 32px;}
+  header h1{font-size:1.2rem;font-weight:700;}
+  header .meta{font-size:.78rem;opacity:.8;margin-top:2px;}
+  nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;gap:2px;overflow-x:auto;}
+  nav button{background:none;border:none;padding:12px 10px;font-size:.85rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap;}
+  nav button.active{color:var(--accent);border-bottom-color:var(--accent);}
+  main{padding:24px 32px;max-width:1400px;margin:0 auto;}
+  .section{margin-bottom:48px;}
+  .section h2{font-size:1.05rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+  .count{background:var(--accent);color:#fff;font-size:.72rem;padding:2px 8px;border-radius:20px;font-weight:600;}
+  .run-group{margin-bottom:32px;}
+  .run-group-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+  .run-date-label{font-size:.82rem;font-weight:600;color:var(--muted);}
+  .delete-all-btn{font-size:.75rem;font-weight:600;padding:4px 12px;border-radius:6px;border:1px solid #fca5a5;background:#fef2f2;color:#dc2626;cursor:pointer;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);transition:opacity .3s;}
+  .card-body{padding:16px;}
+  .address{font-size:.95rem;font-weight:600;margin-bottom:10px;line-height:1.3;}
+  .address a{color:var(--text);text-decoration:none;}
+  .address a:hover{color:var(--accent);text-decoration:underline;}
+  .stats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+  .price{font-size:1.1rem;font-weight:700;color:var(--accent);width:100%;}
+  .stat{font-size:.82rem;color:var(--muted);background:var(--bg);padding:3px 8px;border-radius:4px;}
+  .source-badge{font-size:.75rem;font-weight:600;padding:3px 8px;border-radius:4px;}
+  .source-zillow{background:#fef9c3;color:#854d0e;}
+  .source-redfin{background:#fee2e2;color:#991b1b;}
+  .source-realtor-com{background:#e0f2fe;color:#0c4a6e;}
+  .badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+  .badge{font-size:.75rem;font-weight:600;padding:3px 10px;border-radius:4px;}
+  .badge-basement-yes{background:#dcfce7;color:#166534;}
+  .badge-basement-maybe{background:#fef9c3;color:#854d0e;}
+  .badge-basement-no{background:#f3f4f6;color:#6b7280;}
+  .badge-highway{background:#fef3c7;color:#92400e;}
+  .info-line{font-size:.8rem;color:var(--muted);margin-bottom:6px;}
+  .christine-pass-indicator{font-size:.78rem;color:#6b7280;margin-bottom:6px;font-style:italic;}
+  .map-btns{display:flex;gap:8px;margin-bottom:10px;}
+  .map-btn{font-size:.78rem;font-weight:600;padding:5px 12px;border-radius:6px;background:#f0f9f4;color:var(--accent);text-decoration:none;border:1px solid #c6e8d5;}
+  .map-btn:hover{background:#d1f0e0;}
+  .btn-group{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
+  .btn{border:1px solid var(--border);background:var(--bg);color:var(--muted);padding:6px 14px;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .15s;}
+  .btn:hover{border-color:#aaa;color:var(--text);}
+  .btn.active{color:#fff;border-color:transparent;}
+  .btn-favorite.active{background:#2d6a4f;}
+  .btn-think.active{background:#7b68ee;}
+  .btn-delete.active{background:#c0392b;}
+  .btn-restore{border-color:#86efac;color:#166534;}
+  .btn-restore:hover{background:#dcfce7;}
+  .btn-christine.active{background:#e11d48;border-color:transparent;color:#fff;}
+  .btn-christine-pass{border-color:#d1d5db;color:#6b7280;}
+  .btn-christine-pass.active{background:#6b7280;border-color:transparent;color:#fff;}
+  .empty{color:var(--muted);font-size:.9rem;padding:12px 0;}
+  .hidden{display:none!important;}
+  .card-photo{width:100%;height:180px;object-fit:cover;cursor:pointer;display:block;border-bottom:1px solid var(--border);}
+  .card-photo-placeholder{width:100%;height:60px;background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.8rem;}
+  #lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;align-items:center;justify-content:center;cursor:pointer;}
+  #lightbox.open{display:flex;}
+  #lightbox img{max-width:95vw;max-height:95vh;object-fit:contain;border-radius:6px;}
+  #error-banner{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;padding:12px 32px;font-size:.9rem;display:none;}
+  #stale-banner{background:#fef9c3;border-bottom:1px solid #fde68a;color:#92400e;padding:10px 32px;font-size:.85rem;text-align:center;display:none;cursor:pointer;}
+  #toast{position:fixed;bottom:24px;right:24px;background:#1a1a1a;color:#fff;padding:10px 18px;border-radius:8px;font-size:.85rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  #toast.show{opacity:1;}
+  #toast.error{background:#c0392b;}
+  #scroll-top{position:fixed;bottom:72px;right:24px;width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;border:none;font-size:1.1rem;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2);z-index:998;}
+  #scroll-top.visible{display:flex;}
+  /* ── Filter bar ── */
+  #filter-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 32px;display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;}
+  #filter-bar.hidden{display:none;}
+  .filter-group{display:flex;flex-direction:column;gap:4px;min-width:120px;}
+  .filter-label{font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+  .filter-range{display:flex;gap:4px;align-items:center;}
+  .filter-range input{width:80px;border:1px solid var(--border);border-radius:5px;padding:4px 7px;font-size:.82rem;background:var(--bg);color:var(--text);}
+  .filter-range span{font-size:.8rem;color:var(--muted);}
+  .filter-checks{display:flex;flex-wrap:wrap;gap:4px;}
+  .filter-check{display:flex;align-items:center;gap:4px;font-size:.8rem;cursor:pointer;white-space:nowrap;}
+  .filter-check input{cursor:pointer;accent-color:var(--accent);}
+  .filter-select select{border:1px solid var(--border);border-radius:5px;padding:4px 7px;font-size:.82rem;background:var(--bg);color:var(--text);cursor:pointer;}
+  #filter-status{font-size:.8rem;color:var(--muted);align-self:flex-end;white-space:nowrap;padding-bottom:2px;}
+  #filter-reset{font-size:.78rem;font-weight:600;padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;align-self:flex-end;}
+  #filter-reset:hover{border-color:#aaa;color:var(--text);}
+  .help-item{display:block;padding:11px 16px;font-size:.85rem;font-weight:500;color:var(--text);text-decoration:none;border-bottom:1px solid var(--border);}
+  .help-item:last-child{border-bottom:none;}
+  .help-item:hover{background:var(--bg);}
+  #help-btn:hover{color:var(--accent);}
+  #filter-toggle{font-size:.78rem;font-weight:600;padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;}
+  #filter-toggle.active{border-color:var(--accent);color:var(--accent);background:#f0f9f4;}
+  .filter-towns{display:flex;flex-wrap:wrap;gap:4px;max-width:360px;}
+  @media(max-width:600px){main{padding:16px;}header{padding:12px 16px;}.grid{grid-template-columns:1fr;}nav{padding:0 4px;}nav button{padding:10px 6px;font-size:.72rem;}#filter-bar{padding:10px 12px;gap:10px;}.filter-range input{width:68px;}}
 </style>
 </head>
 <body>
@@ -1269,7 +1292,7 @@ def _shell_html(run_time, worker_url):
 <div class="sticky-top">
   <header>
     <h1>Ranch Finder — Bridgewater, Somerset &amp; Cranford, NJ</h1>
-    <div class="meta" id="header-meta">Last scrape: {run_time}</div>
+    <div class="meta" id="header-meta">Last scrape: __RUN_TIME__</div>
   </header>
   <nav id="main-nav">
     <button class="active" onclick="showTab('new-this-week',this)">🆕 This Week (<span id="nav-new-this-week">0</span>)</button>
@@ -1278,7 +1301,91 @@ def _shell_html(run_time, worker_url):
     <button onclick="showTab('both',this)">💑 (<span id="nav-both">0</span>)</button>
     <button onclick="showTab('think',this)">🤔 Maybe (<span id="nav-think">0</span>)</button>
     <button onclick="showTab('deleted',this)">🗑️ Deleted (<span id="nav-deleted">0</span>)</button>
+    <button id="filter-toggle" onclick="toggleFilterBar(this)" style="margin-left:auto;">🔍 Filter</button>
+    <div id="help-menu-wrap" style="position:relative;border-left:1px solid var(--border);">
+      <button id="help-btn" onclick="toggleHelpMenu()" style="font-size:.9rem;font-weight:700;padding:8px 14px;border:none;background:none;color:var(--muted);cursor:pointer;line-height:1;" title="Resources">?</button>
+      <div id="help-menu" style="display:none;position:fixed;right:8px;top:48px;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.18);min-width:220px;z-index:9999;overflow:hidden;">
+        <a href="guide.html" target="_blank" class="help-item">📖 User Guide</a>
+        <a href="How_Ranch_Finder_Hacks_Real_Estate_Search.mp4" target="_blank" class="help-item">🎬 Video Walkthrough</a>
+        <a href="RanchFinder_Platform.pdf" target="_blank" class="help-item">📊 Slide Deck (PDF)</a>
+        <a href="Smarter_Real_Estate_Search_Workflow.png" target="_blank" class="help-item">🗺️ Infographic</a>
+      </div>
+    </div>
   </nav>
+  <div id="filter-bar" class="hidden">
+    <!-- Towns — populated dynamically -->
+    <div class="filter-group" id="fg-towns">
+      <span class="filter-label">Town</span>
+      <div class="filter-towns" id="filter-towns"></div>
+    </div>
+    <!-- Price -->
+    <div class="filter-group">
+      <span class="filter-label">Price</span>
+      <div class="filter-range">
+        <input type="number" id="f-price-min" placeholder="e.g. 400000" step="50000" oninput="applyFilters()">
+        <span>–</span>
+        <input type="number" id="f-price-max" placeholder="e.g. 800000" step="50000" oninput="applyFilters()">
+      </div>
+    </div>
+    <!-- Lot size -->
+    <div class="filter-group">
+      <span class="filter-label">Lot (acres)</span>
+      <div class="filter-range">
+        <input type="number" id="f-lot-min" placeholder="e.g. 0.25" step="0.1" oninput="applyFilters()">
+        <span>–</span>
+        <input type="number" id="f-lot-max" placeholder="e.g. 2.0" step="0.1" oninput="applyFilters()">
+      </div>
+    </div>
+    <!-- Home sqft -->
+    <div class="filter-group">
+      <span class="filter-label">Home Size (sqft)</span>
+      <div class="filter-range">
+        <input type="number" id="f-sqft-min" placeholder="e.g. 1500" step="100" oninput="applyFilters()">
+        <span>–</span>
+        <input type="number" id="f-sqft-max" placeholder="e.g. 3000" step="100" oninput="applyFilters()">
+      </div>
+    </div>
+    <!-- Basement -->
+    <div class="filter-group">
+      <span class="filter-label">Basement</span>
+      <div class="filter-checks" id="fg-basement">
+        <label class="filter-check"><input type="checkbox" value="yes"   onchange="applyFilters()"> ✅ Confirmed</label>
+        <label class="filter-check"><input type="checkbox" value="maybe" onchange="applyFilters()"> ⚠️ Unconfirmed</label>
+        <label class="filter-check"><input type="checkbox" value="no"    onchange="applyFilters()"> ❌ None</label>
+      </div>
+    </div>
+    <!-- Garage -->
+    <div class="filter-group">
+      <span class="filter-label">Garage</span>
+      <div class="filter-checks" id="fg-garage">
+        <label class="filter-check"><input type="checkbox" value="yes" onchange="applyFilters()"> 🚗 Has Garage</label>
+        <label class="filter-check"><input type="checkbox" value="no"  onchange="applyFilters()"> No Garage</label>
+      </div>
+    </div>
+    <!-- Road Type -->
+    <div class="filter-group">
+      <span class="filter-label">Road Type</span>
+      <div class="filter-checks" id="fg-road">
+        <label class="filter-check"><input type="checkbox" value="residential" onchange="applyFilters()"> 🏘️ Residential</label>
+        <label class="filter-check"><input type="checkbox" value="minor"       onchange="applyFilters()"> 🟡 Minor Through</label>
+        <label class="filter-check"><input type="checkbox" value="secondary"   onchange="applyFilters()"> 🟠 Secondary</label>
+        <label class="filter-check"><input type="checkbox" value="primary"     onchange="applyFilters()"> 🔴 Primary Arterial</label>
+      </div>
+    </div>
+    <!-- Near Highway -->
+    <div class="filter-group">
+      <span class="filter-label">Near Highway</span>
+      <div class="filter-select">
+        <select id="f-highway" onchange="applyFilters()">
+          <option value="">Any</option>
+          <option value="yes">🛣️ Near Highway</option>
+          <option value="no">✅ Not Near Highway</option>
+        </select>
+      </div>
+    </div>
+    <span id="filter-status"></span>
+    <button id="filter-reset" onclick="resetFilters()">Reset</button>
+  </div>
 </div>
 <div id="error-banner"></div>
 <main>
@@ -1292,51 +1399,52 @@ def _shell_html(run_time, worker_url):
 </main>
 <div id="toast"></div>
 <div id="lightbox" onclick="closeLightbox()"><img id="lightbox-img" src="" alt="Property photo"></div>
-<button id="scroll-top" onclick="window.scrollTo({{top:0,behavior:'smooth'}})">↑</button>
+<button id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 
 <script>
 // ── Constants ────────────────────────────────────────────────────────────────
-const WORKER_URL = "{worker_url}";
+const WORKER_URL = "__WORKER_URL__";
 const DAYS_NEW   = 7;   // listings first_seen within N days appear in "This Week"
 
 // ── State ────────────────────────────────────────────────────────────────────
-let state       = {{}};  // {{id: listing, ...}}
+let state       = {};  // {id: listing, ...}
 let loadedSha   = null;  // SHA of state.json at load time
 let activeTab   = "new-this-week";
 let saveQueue   = null;  // pending save timeout handle
 let saving      = false; // save in flight
 
 // ── Boot ─────────────────────────────────────────────────────────────────────
-(async function boot() {{
-  try {{
-    const resp = await fetch(WORKER_URL, {{method:"GET"}});
+(async function boot() {
+  try {
+    const resp = await fetch(WORKER_URL, {method:"GET"});
     if (!resp.ok) throw new Error("Worker returned " + resp.status);
     const data = await resp.json();
     if (data.error) throw new Error(data.error);
-    state     = data.listings || {{}};
+    state     = data.listings || {};
     loadedSha = data.sha || null;
     document.getElementById("loading").style.display = "none";
+    buildTownFilter();
     renderAll();
     showTab("new-this-week", document.querySelector("nav button"));
-  }} catch(err) {{
+  } catch(err) {
     document.getElementById("loading").style.display = "none";
     const eb = document.getElementById("error-banner");
     eb.textContent = "⚠️ Could not load listings: " + err.message + " — try refreshing.";
     eb.style.display = "block";
-  }}
-}})();
+  }
+})();
 
 // ── Rendering ────────────────────────────────────────────────────────────────
-function fmtPrice(p) {{
+function fmtPrice(p) {
   if (p == null) return "N/A";
   if (typeof p === "object") p = p.value || p.amount || p.price;
   if (p == null) return "N/A";
   const n = parseFloat(String(p).replace(/,/g,""));
   if (isNaN(n)) return String(p);
   return "$" + n.toLocaleString();
-}}
+}
 
-function fmtLot(v) {{
+function fmtLot(v) {
   if (v == null) return "";
   const s = String(v).trim();
   if (!s || s === "null") return "";
@@ -1347,43 +1455,43 @@ function fmtLot(v) {{
   if (isNaN(sqft)) return s;
   const acres = (sqft / 43560).toFixed(2);
   return sqft.toLocaleString() + " sqft (" + acres + " ac)";
-}}
+}
 
-function isNewThisWeek(listing) {{
+function isNewThisWeek(listing) {
   const fs = listing.first_seen || listing.run_date || "";
   if (!fs) return false;
   const d = new Date(fs + "T00:00:00Z");
   return (Date.now() - d.getTime()) / 86400000 <= DAYS_NEW;
-}}
+}
 
-function groupByStatus() {{
-  const groups = {{unreviewed:[], favorite:[], both:[], think:[], deleted:[]}};
-  for (const [id, L] of Object.entries(state)) {{
+function groupByStatus() {
+  const groups = {unreviewed:[], favorite:[], both:[], think:[], deleted:[]};
+  for (const [id, L] of Object.entries(state)) {
     const s = L.status || "new";
-    if (s === "deleted") {{
+    if (s === "deleted") {
       groups.deleted.push([id,L]);
       continue;
-    }}
-    if (s === "favorite") {{
+    }
+    if (s === "favorite") {
       if (L.christine_favorite) groups.both.push([id,L]);
       else groups.favorite.push([id,L]);
-    }} else if (s === "think") {{
+    } else if (s === "think") {
       groups.think.push([id,L]);
-    }} else {{
+    } else {
       groups.unreviewed.push([id,L]);
-    }}
-  }}
+    }
+  }
   // Sort unreviewed: run_date desc, then first_seen desc, then last_modified desc
-  groups.unreviewed.sort((a,b) => {{
+  groups.unreviewed.sort((a,b) => {
     const rd = (b[1].run_date||b[1].first_seen||"").localeCompare(a[1].run_date||a[1].first_seen||"");
     if (rd !== 0) return rd;
     const lm = (b[1].last_modified||"").localeCompare(a[1].last_modified||"");
     return lm !== 0 ? lm : (b[1].first_seen||"").localeCompare(a[1].first_seen||"");
-  }});
+  });
   return groups;
-}}
+}
 
-function renderCard(id, L) {{
+function renderCard(id, L) {
   const status   = L.status || "new";
   const srcCls   = (L.source||"").toLowerCase().replace(/[.]/g,"-");
   const srcLabel = L.source || "";
@@ -1391,23 +1499,14 @@ function renderCard(id, L) {{
   // Badges
   let badges = "";
   const bl = L.basement_label || "";
-  if (bl.startsWith("✅")) badges += `<span class="badge badge-basement-yes">${{bl}}</span>`;
-  else if (bl.startsWith("⚠️")) badges += `<span class="badge badge-basement-maybe">${{bl}}</span>`;
-  else if (bl.startsWith("❌")) badges += `<span class="badge badge-basement-no">${{bl}}</span>`;
-  const hw = L.highway_roads || [];
-  if (hw.length) {{
-    hw.forEach(r => {{
-      const dist = r.distance_miles != null ? ` — ${{r.distance_miles}} mi` : "";
-      badges += `<span class="badge badge-highway">🛣️ ${{r.name}}${{dist}}</span>`;
-    }});
-  }} else if (L.near_highway) {{
-    badges += `<span class="badge badge-highway">🛣️ Near Highway</span>`;
-  }}
+  if (bl.startsWith("✅")) badges += `<span class="badge badge-basement-yes">${bl}</span>`;
+  else if (bl.startsWith("⚠️")) badges += `<span class="badge badge-basement-maybe">${bl}</span>`;
+  else if (bl.startsWith("❌")) badges += `<span class="badge badge-basement-no">${bl}</span>`;
 
   // Map buttons — address-based fallback (no lat/lng stored yet)
   const addrEnc = encodeURIComponent(L.address || "");
-  const svUrl   = `https://www.google.com/maps/search/?api=1&query=${{addrEnc}}&layer=streetview`;
-  const satUrl  = `https://www.google.com/maps/search/?api=1&query=${{addrEnc}}&t=k`;
+  const svUrl   = `https://www.google.com/maps/search/?api=1&query=${addrEnc}&layer=streetview`;
+  const satUrl  = `https://www.google.com/maps/search/?api=1&query=${addrEnc}&t=k`;
 
   // John's action buttons — active state + toggle
   const favActive  = status === "favorite" ? " active" : "";
@@ -1416,145 +1515,170 @@ function renderCard(id, L) {{
 
   // Christine buttons — only rendered when John has favorited
   let christineBtns = "";
-  if (status === "favorite") {{
+  if (status === "favorite") {
     const cFav  = L.christine_favorite || false;
     const cPass = L.christine_pass     || false;
     const cHeart= cFav  ? "❤️" : "🤍";
     christineBtns = `
-      <button class="btn btn-christine${{cFav?" active":""}}" onclick="clickChristineHeart('${{id}}')">${{cHeart}} Christine</button>
-      <button class="btn btn-christine-pass${{cPass?" active":""}}" onclick="clickChristinePass('${{id}}')">👎 Not Interested</button>`;
-  }}
+      <button class="btn btn-christine${cFav?" active":""}" onclick="clickChristineHeart('${id}')">${cHeart} Christine</button>
+      <button class="btn btn-christine-pass${cPass?" active":""}" onclick="clickChristinePass('${id}')">👎 Not Interested</button>`;
+  }
 
   // Christine pass indicator
   const passInd = (status === "favorite" && L.christine_pass)
     ? `<div class="christine-pass-indicator">👎 Christine not interested</div>` : "";
 
   const photoHtml = L.photo_url
-    ? `<img class="card-photo" src="${{L.photo_url}}" alt="Property photo" onclick="openLightbox('${{L.photo_url_hires||L.photo_url}}')" loading="lazy">`
+    ? `<img class="card-photo" src="${L.photo_url}" alt="Property photo" onclick="openLightbox('${L.photo_url_hires||L.photo_url}')" loading="lazy">`
     : `<div class="card-photo-placeholder">No photo available</div>`;
 
   return `
-<div class="card" id="card-${{id}}" data-id="${{id}}" data-status="${{status}}">
-  ${{photoHtml}}
+<div class="card" id="card-${id}" data-id="${id}" data-status="${status}">
+  ${photoHtml}
   <div class="card-body">
-    <h3 class="address"><a href="${{L.url||"#"}}" target="_blank">${{L.address||""}}</a></h3>
+    <h3 class="address"><a href="${L.url||"#"}" target="_blank">${L.address||""}</a></h3>
     <div class="stats">
-      <span class="price">${{fmtPrice(L.price)}}</span>
-      <span class="stat">${{L.beds||"?"}} bd</span>
-      <span class="stat">${{L.baths||"?"}} ba</span>
-      ${{L.lot_sqft ? `<span class="stat">${{fmtLot(L.lot_sqft)}}</span>` : ""}}
-      <span class="source-badge source-${{srcCls}}">${{srcLabel}}</span>
+      <span class="price">${fmtPrice(L.price)}</span>
+      <span class="stat">${L.beds||"?"} bd</span>
+      <span class="stat">${L.baths||"?"} ba</span>
+      ${L.lot_sqft ? `<span class="stat">${fmtLot(L.lot_sqft)}</span>` : ""}
+      ${L.home_sqft ? `<span class="stat">🏠 ${Math.round(L.home_sqft).toLocaleString()} sqft</span>` : ""}
+      <span class="source-badge source-${srcCls}">${srcLabel}</span>
     </div>
-    ${{badges ? `<div class="badges">${{badges}}</div>` : ""}}
-    ${{L.garage_label  ? `<div class="info-line">${{L.garage_label}}</div>`  : ""}}
-    ${{L.property_road ? `<div class="info-line">${{L.property_road}}</div>` : ""}}
-    ${{passInd}}
+    ${badges ? `<div class="badges">${badges}</div>` : ""}
+    ${L.garage_label  ? `<div class="info-line">${L.garage_label}</div>`  : ""}
+    ${L.property_road ? `<div class="info-line">${L.property_road}</div>` : ""}
+    ${(()=>{ const hw=(L.highway_roads||[]).filter(r=>r.distance_miles!=null&&r.distance_miles<=0.25); return hw.length ? `<div class="info-line hw-line">🛣️ Near Highway: ${hw.map(r=>r.name+' — '+r.distance_miles+' mi').join(', ')}</div>` : ''; })()}
+    ${passInd}
     <div class="map-btns">
-      <a href="${{svUrl}}"  target="_blank" class="map-btn">📷 Street View</a>
-      <a href="${{satUrl}}" target="_blank" class="map-btn">🛰️ Satellite</a>
+      <a href="${svUrl}"  target="_blank" class="map-btn">📷 Street View</a>
+      <a href="${satUrl}" target="_blank" class="map-btn">🛰️ Satellite</a>
     </div>
     <div class="btn-group">
-      <button class="btn btn-favorite${{favActive}}"  onclick="setStatus('${{id}}','favorite')">❤️ Favorite</button>
-      <button class="btn btn-think${{thinkActive}}"   onclick="setStatus('${{id}}','think')">🤔 Maybe</button>
-      <button class="btn btn-delete${{delActive}}"    onclick="setStatus('${{id}}','deleted')">🗑️ Delete</button>
-      ${{status === "deleted" ? `<button class="btn btn-restore" onclick="restoreListing('${{id}}')">↩️ Restore</button>` : ""}}
-      ${{christineBtns}}
+      <button class="btn btn-favorite${favActive}"  onclick="setStatus('${id}','favorite')">❤️ Favorite</button>
+      <button class="btn btn-think${thinkActive}"   onclick="setStatus('${id}','think')">🤔 Maybe</button>
+      <button class="btn btn-delete${delActive}"    onclick="setStatus('${id}','deleted')">🗑️ Delete</button>
+      ${status === "deleted" ? `<button class="btn btn-restore" onclick="restoreListing('${id}')">↩️ Restore</button>` : ""}
+      ${christineBtns}
     </div>
   </div>
 </div>`;
-}}
+}
 
-function renderAll() {{
+function renderAll() {
   const groups = groupByStatus();
-  const newThisWeek = groups.unreviewed.filter(([,L]) => isNewThisWeek(L));
+  const newThisWeekAll = groups.unreviewed.filter(([,L]) => isNewThisWeek(L));
 
-  // Tab: New This Week — filtered view, cards NOT moved out of unreviewed
+  // Apply filters to all non-deleted groups
+  const newThisWeek = filterItems(newThisWeekAll, false);
+  const unreviewed  = filterItems(groups.unreviewed, false);
+  const favorites   = filterItems(groups.favorite, false);
+  const both        = filterItems(groups.both, false);
+  const think       = filterItems(groups.think, false);
+
+  // Update filter status counter
+  const totalNonDel = groups.unreviewed.length + groups.favorite.length + groups.both.length + groups.think.length;
+  const shownNonDel = unreviewed.length + favorites.length + both.length + think.length;
+  updateFilterStatus(shownNonDel, totalNonDel);
+
+  // Tab: New This Week
   const ntwPane = document.getElementById("tab-new-this-week");
-  if (newThisWeek.length === 0) {{
+  if (newThisWeek.length === 0) {
     ntwPane.innerHTML = '<p class="empty">No new listings this week.</p>';
-  }} else {{
-    ntwPane.innerHTML = `<div class="grid">${{newThisWeek.map(([id,L]) => renderCard(id,L)).join("")}}</div>`;
-  }}
+  } else {
+    ntwPane.innerHTML = `<div class="grid">${newThisWeek.map(([id,L]) => renderCard(id,L)).join("")}</div>`;
+  }
 
   // Tab: Unreviewed — grouped by run_date
   const unrevPane = document.getElementById("tab-unreviewed");
-  if (groups.unreviewed.length === 0) {{
+  if (unreviewed.length === 0) {
     unrevPane.innerHTML = '<p class="empty">No unreviewed listings.</p>';
-  }} else {{
-    const byDate = {{}};
-    groups.unreviewed.forEach(([id,L]) => {{
+  } else {
+    const byDate = {};
+    unreviewed.forEach(([id,L]) => {
       const rd = L.run_date || L.first_seen || "Unknown";
       if (!byDate[rd]) byDate[rd] = [];
       byDate[rd].push([id,L]);
-    }});
+    });
     unrevPane.innerHTML = Object.entries(byDate).map(([rd,items]) => `
       <div class="run-group">
         <div class="run-group-header">
-          <span class="run-date-label">Run: ${{rd}}</span>
-          <button class="delete-all-btn" onclick="deleteAll(${{JSON.stringify(items.map(([id])=>id))}})">Delete All (${{items.length}})</button>
+          <span class="run-date-label">Run: ${rd}</span>
+          <button class="delete-all-btn" onclick="deleteAll(${JSON.stringify(items.map(([id])=>id))})">Delete All (${items.length})</button>
         </div>
-        <div class="grid">${{items.map(([id,L]) => renderCard(id,L)).join("")}}</div>
+        <div class="grid">${items.map(([id,L]) => renderCard(id,L)).join("")}</div>
       </div>`).join("");
-  }}
+  }
 
   // Tab: Favorites
-  renderSimpleTab("tab-favorite", groups.favorite, "No favorites yet.");
+  renderSimpleTab("tab-favorite", favorites, "No favorites yet.");
 
   // Tab: Both Love It
-  renderSimpleTab("tab-both", groups.both, "Nothing in Both Love It yet.");
+  renderSimpleTab("tab-both", both, "Nothing in Both Love It yet.");
 
   // Tab: Maybe
-  renderSimpleTab("tab-think", groups.think, "Nothing in Maybe yet.");
+  renderSimpleTab("tab-think", think, "Nothing in Maybe yet.");
 
-  // Tab: Deleted
-  renderSimpleTab("tab-deleted", groups.deleted, "No deleted listings.");
+  // Tab: Deleted — always unfiltered, with Purge All button
+  const delPane = document.getElementById("tab-deleted");
+  if (groups.deleted.length === 0) {
+    delPane.innerHTML = '<p class="empty">No deleted listings.</p>';
+  } else {
+    delPane.innerHTML = `
+      <div class="run-group-header" style="margin-bottom:12px;">
+        <span class="run-date-label">${groups.deleted.length} deleted listing${groups.deleted.length===1?'':'s'}</span>
+        <button class="delete-all-btn" onclick="purgeDeleted()">🗑️ Purge All (keep IDs only)</button>
+      </div>
+      <div class="grid">${groups.deleted.filter(([id,L]) => L.address).map(([id,L]) => renderCard(id,L)).join('')}</div>
+    `;
+  }
 
-  updateNavCounts(groups, newThisWeek.length);
-}}
+  updateNavCounts(groups, newThisWeekAll.length);
+}
 
-function renderSimpleTab(paneId, items, emptyMsg) {{
+function renderSimpleTab(paneId, items, emptyMsg) {
   const pane = document.getElementById(paneId);
-  if (items.length === 0) {{
-    pane.innerHTML = `<p class="empty">${{emptyMsg}}</p>`;
-  }} else {{
-    pane.innerHTML = `<div class="grid">${{items.map(([id,L]) => renderCard(id,L)).join("")}}</div>`;
-  }}
-}}
+  if (items.length === 0) {
+    pane.innerHTML = `<p class="empty">${emptyMsg}</p>`;
+  } else {
+    pane.innerHTML = `<div class="grid">${items.map(([id,L]) => renderCard(id,L)).join("")}</div>`;
+  }
+}
 
 // ── Nav ──────────────────────────────────────────────────────────────────────
-function showTab(key, btn) {{
+function showTab(key, btn) {
   document.querySelectorAll(".tab-pane").forEach(p => p.classList.add("hidden"));
   document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
   const pane = document.getElementById("tab-" + key);
   if (pane) pane.classList.remove("hidden");
   if (btn)  btn.classList.add("active");
   activeTab = key;
-}}
+}
 
-function updateNavCounts(groups, ntwCount) {{
-  if (!groups) {{
+function updateNavCounts(groups, ntwCount) {
+  if (!groups) {
     groups = groupByStatus();
     ntwCount = groups.unreviewed.filter(([,L]) => isNewThisWeek(L)).length;
-  }}
+  }
   document.getElementById("nav-new-this-week").textContent = ntwCount;
   document.getElementById("nav-unreviewed").textContent    = groups.unreviewed.length;
   document.getElementById("nav-favorite").textContent      = groups.favorite.length;
   document.getElementById("nav-both").textContent          = groups.both.length;
   document.getElementById("nav-think").textContent         = groups.think.length;
   document.getElementById("nav-deleted").textContent       = groups.deleted.length;
-}}
+}
 
 // ── Button handlers ───────────────────────────────────────────────────────────
-async function restoreListing(id) {{
+async function restoreListing(id) {
   if (!state[id]) return;
   state[id].status        = "new";
   state[id].last_modified = new Date().toISOString();
   renderAll();
   showTab(activeTab, document.querySelector("nav button.active"));
   await enqueueSave(id, "status", "new");
-}}
+}
 
-async function setStatus(id, newStatus) {{
+async function setStatus(id, newStatus) {
   if (!state[id]) return;
   const L = state[id];
   const oldStatus = L.status || "new";
@@ -1567,10 +1691,10 @@ async function setStatus(id, newStatus) {{
 
   // Apply to state
   L.status = effectiveStatus;
-  if (effectiveStatus !== "favorite") {{
+  if (effectiveStatus !== "favorite") {
     L.christine_favorite = false;
     L.christine_pass     = false;
-  }}
+  }
   L.last_modified = new Date().toISOString();
 
   // Re-render everything and restore tab position
@@ -1579,13 +1703,13 @@ async function setStatus(id, newStatus) {{
 
   // Save — field by field (status first, then clear christine fields if needed)
   await enqueueSave(id, "status", effectiveStatus);
-  if (effectiveStatus !== "favorite" && (oldStatus === "favorite")) {{
+  if (effectiveStatus !== "favorite" && (oldStatus === "favorite")) {
     await enqueueSave(id, "christine_favorite", false);
     await enqueueSave(id, "christine_pass",     false);
-  }}
-}}
+  }
+}
 
-async function clickChristineHeart(id) {{
+async function clickChristineHeart(id) {
   if (!state[id]) return;
   const L = state[id];
   const current = L.christine_favorite || false;
@@ -1595,9 +1719,9 @@ async function clickChristineHeart(id) {{
   showTab(activeTab, document.querySelector("nav button.active"));
   await enqueueSave(id, "christine_favorite", !current);
   await enqueueSave(id, "christine_pass",     false);
-}}
+}
 
-async function clickChristinePass(id) {{
+async function clickChristinePass(id) {
   if (!state[id]) return;
   const L = state[id];
   const current = L.christine_pass || false;
@@ -1607,98 +1731,321 @@ async function clickChristinePass(id) {{
   showTab(activeTab, document.querySelector("nav button.active"));
   await enqueueSave(id, "christine_pass",     !current);
   await enqueueSave(id, "christine_favorite", false);
-}}
+}
 
-async function deleteAll(ids) {{
-  ids.forEach(id => {{
-    if (state[id] && state[id].status !== "deleted") {{
+async function deleteAll(ids) {
+  ids.forEach(id => {
+    if (state[id] && state[id].status !== "deleted") {
       state[id].status        = "deleted";
       state[id].last_modified = new Date().toISOString();
-    }}
-  }});
+    }
+  });
   renderAll();
   showTab(activeTab, document.querySelector("nav button.active"));
   // Save each deletion sequentially
-  for (const id of ids) {{
+  for (const id of ids) {
     await enqueueSave(id, "status", "deleted");
-  }}
-}}
+  }
+}
 
 // ── Save queue ────────────────────────────────────────────────────────────────
 // Saves are serialized — each waits for previous to complete
 const _saveQueue = [];
 let   _saveBusy  = false;
 
-async function enqueueSave(id, field, value) {{
-  _saveQueue.push({{id, field, value}});
+async function enqueueSave(id, field, value) {
+  _saveQueue.push({id, field, value});
   if (!_saveBusy) drainQueue();
-}}
+}
 
-async function drainQueue() {{
+async function drainQueue() {
   _saveBusy = true;
-  while (_saveQueue.length > 0) {{
+  while (_saveQueue.length > 0) {
     const job = _saveQueue.shift();
     await doSave(job.id, job.field, job.value);
-  }}
+  }
   _saveBusy = false;
-}}
+}
 
-async function doSave(id, field, value) {{
+async function doSave(id, field, value) {
   showToast("Saving…");
-  try {{
-    const resp = await fetch(WORKER_URL, {{
+  try {
+    const resp = await fetch(WORKER_URL, {
       method:  "POST",
-      headers: {{"Content-Type":"application/json"}},
-      body:    JSON.stringify({{id, field, value}}),
-    }});
-    const result = await resp.json().catch(() => ({{}}));
+      headers: {"Content-Type":"application/json"},
+      body:    JSON.stringify({id, field, value}),
+    });
+    const result = await resp.json().catch(() => ({}));
     if (!resp.ok || result.error) throw new Error(result.error || "status " + resp.status);
 
     showToast("Saved ✓");
 
-    // Check if a new scrape has landed since we loaded
-    if (result.sha && loadedSha && result.sha !== loadedSha) {{
-      document.getElementById("stale-banner").style.display = "block";
-    }}
+    // Silently update SHA after our own save — do NOT trigger banner
     loadedSha = result.sha || loadedSha;
 
-  }} catch(err) {{
+  } catch(err) {
     showToast("Save failed — please retry", true);
     console.error("Save error:", err);
-  }}
-}}
+  }
+}
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
-function openLightbox(url) {{
+function openLightbox(url) {
   document.getElementById("lightbox-img").src = url;
   document.getElementById("lightbox").classList.add("open");
-}}
-function closeLightbox() {{
+}
+function closeLightbox() {
   document.getElementById("lightbox").classList.remove("open");
   document.getElementById("lightbox-img").src = "";
-}}
-document.addEventListener("keydown", e => {{ if(e.key==="Escape") closeLightbox(); }});
+}
+document.addEventListener("keydown", e => { if(e.key==="Escape") closeLightbox(); });
 
-function showToast(msg, isError=false) {{
+function showToast(msg, isError=false) {
   const t = document.getElementById("toast");
   t.textContent = msg;
   t.className   = "show" + (isError ? " error" : "");
   clearTimeout(t._timer);
   t._timer = setTimeout(() => t.className = "", 2500);
-}}
+}
 
-window.addEventListener("scroll", () => {{
+// ── Purge deleted ────────────────────────────────────────────────────────────
+async function purgeDeleted() {
+  const count = Object.values(state).filter(L => L.status === 'deleted').length;
+  if (!confirm(`Purge ${count} deleted listing(s)? Only IDs will be kept — all other data removed. This cannot be undone.`)) return;
+
+  // Strip all fields except status from deleted listings
+  const purged = [];
+  for (const [id, L] of Object.entries(state)) {
+    if (L.status === 'deleted') {
+      state[id] = { status: 'deleted' };
+      purged.push(id);
+    }
+  }
+
+  if (purged.length === 0) return;
+
+  // Save purged state to GitHub via worker
+  try {
+    saving = true;
+    const resp = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'purge_deleted', ids: purged })
+    });
+    const result = await resp.json();
+    if (!resp.ok || result.error) throw new Error(result.error || 'status ' + resp.status);
+    loadedSha = result.sha || loadedSha;
+    showToast('Purged ✓ — ' + purged.length + ' listings stripped to ID only');
+    renderAll();
+    showTab('deleted', document.querySelector('nav button[onclick*="deleted"]'));
+  } catch(err) {
+    showToast('Purge failed — please retry', true);
+    console.error('Purge error:', err);
+  } finally {
+    saving = false;
+  }
+}
+
+// ── Help menu ────────────────────────────────────────────────────────────────
+function toggleHelpMenu() {
+  const m = document.getElementById("help-menu");
+  m.style.display = m.style.display === "none" ? "block" : "none";
+}
+document.addEventListener("click", e => {
+  const wrap = document.getElementById("help-menu-wrap");
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById("help-menu").style.display = "none";
+  }
+});
+
+window.addEventListener("scroll", () => {
   const btn = document.getElementById("scroll-top");
   if (window.scrollY > 400) btn.classList.add("visible");
   else btn.classList.remove("visible");
-}});
+});
+
+// ── Filters ───────────────────────────────────────────────────────────────────
+
+// Extract city from address string: "123 Main St, Bridgewater, NJ 08807" → "Bridgewater"
+function cityFromAddress(addr) {
+  if (!addr) return "";
+  // Match everything before ", NJ"
+  const m = addr.match(/,\\s*([^,]+),\\s*NJ\\b/i);
+  return m ? m[1].trim() : "";
+}
+
+// Classify basement label
+function basementClass(label) {
+  if (!label) return "no";
+  if (label.startsWith("✅")) return "yes";
+  if (label.startsWith("⚠️")) return "maybe";
+  return "no";
+}
+
+// Classify garage label
+function garageClass(label) {
+  if (!label) return "no";
+  const l = label.toLowerCase();
+  return (l.includes("garage") || l.includes("carport")) ? "yes" : "no";
+}
+
+// Classify road type from property_road label
+function roadClass(L) {
+  const pr = L.property_road || "";
+  if (pr.includes("Primary")) return "primary";
+  if (pr.includes("Secondary")) return "secondary";
+  if (pr.includes("Minor")) return "minor";
+  return "residential";
+}
+
+// Near highway: true if any highway_roads entry within 0.25 mi
+function isNearHighway(L) {
+  const hw = L.highway_roads || [];
+  if (!hw.length) return false;
+  return hw.some(r => r.distance_miles != null && r.distance_miles <= 0.25);
+}
+
+// Parse price to number
+function priceNum(p) {
+  if (p == null) return null;
+  if (typeof p === "object") p = p.value || p.amount || p.price;
+  if (p == null) return null;
+  const n = parseFloat(String(p).replace(/,/g,""));
+  return isNaN(n) ? null : n;
+}
+
+// Parse lot to acres
+function lotAcres(v) {
+  if (v == null) return null;
+  const s = String(v).trim();
+  if (!s || s === "null") return null;
+  const sqft = parseFloat(s.replace(/,/g,""));
+  if (isNaN(sqft)) return null;
+  return sqft / 43560;
+}
+
+// Build town checkboxes from actual data (called once after state loads)
+function buildTownFilter() {
+  const towns = new Set();
+  for (const L of Object.values(state)) {
+    const c = cityFromAddress(L.address);
+    if (c) towns.add(c);
+  }
+  const sorted = [...towns].sort();
+  const container = document.getElementById("filter-towns");
+  container.innerHTML = sorted.map(t =>
+    `<label class="filter-check"><input type="checkbox" value="${t}" onchange="applyFilters()"> ${t}</label>`
+  ).join("");
+}
+
+// Read current filter state
+function getFilters() {
+  const checked = id => [...document.querySelectorAll("#" + id + " input:checked")].map(i => i.value);
+  return {
+    towns:    checked("filter-towns"),
+    priceMin: parseFloat(document.getElementById("f-price-min").value) || null,
+    priceMax: parseFloat(document.getElementById("f-price-max").value) || null,
+    lotMin:   parseFloat(document.getElementById("f-lot-min").value)   || null,
+    lotMax:   parseFloat(document.getElementById("f-lot-max").value)   || null,
+    sqftMin:  parseFloat(document.getElementById("f-sqft-min").value)  || null,
+    sqftMax:  parseFloat(document.getElementById("f-sqft-max").value)  || null,
+    basement: checked("fg-basement"),
+    garage:   checked("fg-garage"),
+    road:     checked("fg-road"),
+    highway:  document.getElementById("f-highway").value,
+  };
+}
+
+// Returns true if listing passes all active filters
+function passesFilters(L, f) {
+  // Town
+  if (f.towns.length > 0 && !f.towns.includes(cityFromAddress(L.address))) return false;
+  // Price
+  const p = priceNum(L.price);
+  if (f.priceMin !== null && (p === null || p < f.priceMin)) return false;
+  if (f.priceMax !== null && (p === null || p > f.priceMax)) return false;
+  // Lot
+  const ac = lotAcres(L.lot_sqft);
+  if (f.lotMin !== null && (ac === null || ac < f.lotMin)) return false;
+  if (f.lotMax !== null && (ac === null || ac > f.lotMax)) return false;
+  // Home sqft
+  const hsqft = L.home_sqft ? parseFloat(L.home_sqft) : null;
+  if (f.sqftMin !== null && (hsqft === null || hsqft < f.sqftMin)) return false;
+  if (f.sqftMax !== null && (hsqft === null || hsqft > f.sqftMax)) return false;
+  // Basement
+  if (f.basement.length > 0 && !f.basement.includes(basementClass(L.basement_label))) return false;
+  // Garage
+  if (f.garage.length > 0 && !f.garage.includes(garageClass(L.garage_label))) return false;
+  // Road type
+  if (f.road.length > 0 && !f.road.includes(roadClass(L))) return false;
+  // Near highway — binary select
+  if (f.highway === "yes" && !isNearHighway(L)) return false;
+  if (f.highway === "no"  &&  isNearHighway(L)) return false;
+  return true;
+}
+
+// Active filters object — shared between applyFilters and renderAll
+let activeFilters = null;
+
+function applyFilters() {
+  activeFilters = getFilters();
+  const hasAny = activeFilters.towns.length || activeFilters.priceMin || activeFilters.priceMax ||
+                 activeFilters.lotMin || activeFilters.lotMax || activeFilters.basement.length ||
+                 activeFilters.garage.length || activeFilters.road.length || activeFilters.highway ||
+                 activeFilters.sqftMin || activeFilters.sqftMax;
+  document.getElementById("filter-toggle").classList.toggle("active", !!hasAny);
+  renderAll();
+  showTab(activeTab, document.querySelector("nav button.active"));
+}
+
+function resetFilters() {
+  document.querySelectorAll("#filter-bar input").forEach(i => { if(i.type==="checkbox") i.checked=false; });
+  document.getElementById("f-price-min").value = "";
+  document.getElementById("f-price-max").value = "";
+  document.getElementById("f-lot-min").value   = "";
+  document.getElementById("f-lot-max").value   = "";
+  document.getElementById("f-sqft-min").value  = "";
+  document.getElementById("f-sqft-max").value  = "";
+  document.getElementById("f-highway").value   = "";
+  activeFilters = null;
+  document.getElementById("filter-toggle").classList.remove("active");
+  renderAll();
+  showTab(activeTab, document.querySelector("nav button.active"));
+}
+
+function toggleFilterBar(btn) {
+  const bar = document.getElementById("filter-bar");
+  bar.classList.toggle("hidden");
+}
+
+// Wrap the item list through the filter — skip deleted tab
+function filterItems(items, isDeletedTab) {
+  if (isDeletedTab || !activeFilters) return items;
+  const f = activeFilters;
+  const hasAny = f.towns.length || f.priceMin || f.priceMax ||
+                 f.lotMin || f.lotMax || f.basement.length ||
+                 f.garage.length || f.road.length;
+  if (!hasAny) return items;
+  return items.filter(([,L]) => passesFilters(L, f));
+}
+
+function updateFilterStatus(shown, total) {
+  const el = document.getElementById("filter-status");
+  if (!el) return;
+  if (activeFilters && (activeFilters.towns.length || activeFilters.priceMin || activeFilters.priceMax ||
+      activeFilters.lotMin || activeFilters.lotMax || activeFilters.basement.length ||
+      activeFilters.garage.length || activeFilters.road.length)) {
+    el.textContent = shown + " of " + total + " shown";
+  } else {
+    el.textContent = "";
+  }
+}
 </script>
 </body>
 </html>"""
-
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
+    html = html.replace("__RUN_TIME__", run_time)
+    html = html.replace("__WORKER_URL__", worker_url)
+    return html
 
 def main():
     print("=" * 60)
