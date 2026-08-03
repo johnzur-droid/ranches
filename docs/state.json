@@ -1286,9 +1286,11 @@
       "property_road": "🟡 Minor Through-Road (Long Hill Road)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "new",
+      "status": "deleted",
       "first_seen": "2026-08-03",
-      "run_date": "2026-08-03"
+      "run_date": "2026-08-03",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "zillow_39864082": {
       "id": "zillow_39864082",
