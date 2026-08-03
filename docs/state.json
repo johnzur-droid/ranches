@@ -935,29 +935,7 @@
       "garage_label": "🚗 Unknown"
     },
     "redfin_37068040": {
-      "id": "redfin_37068040",
-      "address": "125 W Minna Ave Avenel NJ 07001",
-      "price": "579000",
-      "beds": 3,
-      "baths": 2,
-      "lot_sqft": 10724,
-      "url": "https://www.redfin.com/NJ/Avenel/125-Minna-Ave-07001/home/37068040",
-      "source": "Redfin",
-      "basement_label": "✅ Basement",
-      "garage_label": "🚗 Unknown",
-      "property_road": "🏘️ Residential Street (Minna Avenue)",
-      "near_highway": true,
-      "highway_roads": [
-        {
-          "name": "925-913 US-1",
-          "distance_miles": 0.08
-        }
-      ],
-      "status": "think",
-      "first_seen": "2026-07-17",
-      "run_date": "2026-07-17",
-      "christine_favorite": false,
-      "christine_pass": false
+      "status": "deleted"
     },
     "redfin_37211439": {
       "status": "deleted"
@@ -1359,114 +1337,19 @@
       "run_date": "2026-08-03"
     },
     "redfin_36807139": {
-      "id": "redfin_36807139",
-      "address": "167 Mundy Ave Edison NJ 08820",
-      "price": "925000",
-      "beds": 3,
-      "baths": 2.5,
-      "lot_sqft": "9300",
-      "url": "https://www.redfin.com/NJ/Edison/167-Mundy-Ave-08820/home/36807139",
-      "source": "Redfin",
-      "photo_url": "https://ssl.cdn-redfin.com/photo/122/islphoto/59R/genIslnoResize.2701959R_0.jpg",
-      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/122/bigphoto/59R/2701959R_0.jpg",
-      "basement_label": "✅ Basement",
-      "garage_label": "🚗 Unknown",
-      "property_road": "🏘️ Residential Street (Mundy Avenue)",
-      "near_highway": false,
-      "highway_roads": [],
-      "status": "new",
-      "first_seen": "2026-08-03",
-      "run_date": "2026-08-03"
+      "status": "deleted"
     },
     "redfin_36810770": {
-      "id": "redfin_36810770",
-      "address": "39 Phoenix Ave Edison NJ 08837",
-      "price": "545000",
-      "beds": 3,
-      "baths": 2.0,
-      "lot_sqft": "7902",
-      "url": "https://www.redfin.com/NJ/Edison/39-Phoenix-Ave-08837/home/36810770",
-      "source": "Redfin",
-      "photo_url": "https://ssl.cdn-redfin.com/photo/122/islphoto/51R/genIslnoResize.2701951R_0.jpg",
-      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/122/bigphoto/51R/2701951R_0.jpg",
-      "basement_label": "✅ Basement",
-      "garage_label": "🚗 Unknown",
-      "property_road": "🏘️ Residential Street (Phoenix Avenue)",
-      "near_highway": true,
-      "highway_roads": [
-        {
-          "name": "New Jersey Turnpike",
-          "distance_miles": 0.16
-        }
-      ],
-      "status": "new",
-      "first_seen": "2026-08-03",
-      "run_date": "2026-08-03"
+      "status": "deleted"
     },
     "redfin_36976168": {
-      "id": "redfin_36976168",
-      "address": "26 Kendall Rd Kendall Park NJ 08824",
-      "price": "549900",
-      "beds": 3,
-      "baths": 2.0,
-      "lot_sqft": "14688",
-      "url": "https://www.redfin.com/NJ/Kendall-Park/26-Kendall-Rd-08824/home/36976168",
-      "source": "Redfin",
-      "photo_url": "https://ssl.cdn-redfin.com/photo/122/islphoto/33M/genIslnoResize.2770133M_0.jpg",
-      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/122/bigphoto/33M/2770133M_0.jpg",
-      "basement_label": "❌ No Basement",
-      "garage_label": "🚗 Unknown",
-      "property_road": "🏘️ Residential Street (Kendall Road)",
-      "near_highway": false,
-      "highway_roads": [],
-      "status": "new",
-      "first_seen": "2026-08-03",
-      "run_date": "2026-08-03"
+      "status": "deleted"
     },
     "redfin_36811306": {
-      "id": "redfin_36811306",
-      "address": "67 Morris Ave Edison NJ 08837",
-      "price": "669000",
-      "beds": 3,
-      "baths": 2.0,
-      "lot_sqft": null,
-      "url": "https://www.redfin.com/NJ/Edison/67-Morris-Ave-08837/home/36811306",
-      "source": "Redfin",
-      "photo_url": "https://ssl.cdn-redfin.com/photo/122/islphoto/15R/genIslnoResize.2701715R_0.jpg",
-      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/122/bigphoto/15R/2701715R_0.jpg",
-      "basement_label": "✅ Basement",
-      "garage_label": "🚗 Unknown",
-      "property_road": "🏘️ Residential Street (Morris Avenue)",
-      "near_highway": true,
-      "highway_roads": [
-        {
-          "name": "New Jersey Turnpike",
-          "distance_miles": 0.12
-        }
-      ],
-      "status": "new",
-      "first_seen": "2026-08-03",
-      "run_date": "2026-08-03"
+      "status": "deleted"
     },
     "redfin_36848580": {
-      "id": "redfin_36848580",
-      "address": "10 Forest Park Ter Monroe Township NJ 08831",
-      "price": "675000",
-      "beds": 4,
-      "baths": 2.0,
-      "lot_sqft": "8777",
-      "url": "https://www.redfin.com/NJ/Monroe-Township/10-Forest-Park-Ter-08831/home/36848580",
-      "source": "Redfin",
-      "photo_url": "https://ssl.cdn-redfin.com/photo/235/islphoto/858/genIslnoResize.NJMX2012858_0.jpg",
-      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/235/bigphoto/858/NJMX2012858_0.jpg",
-      "basement_label": "✅ Basement",
-      "garage_label": "🚗 Unknown",
-      "property_road": "🏘️ Residential Street (Forest Park Terrace)",
-      "near_highway": false,
-      "highway_roads": [],
-      "status": "new",
-      "first_seen": "2026-08-03",
-      "run_date": "2026-08-03"
+      "status": "deleted"
     },
     "redfin_37014871": {
       "id": "redfin_37014871",
@@ -1489,24 +1372,7 @@
       "run_date": "2026-08-03"
     },
     "redfin_36804141": {
-      "id": "redfin_36804141",
-      "address": "41 W Calvert Ave Edison NJ 08820",
-      "price": "889000",
-      "beds": 4,
-      "baths": 3.5,
-      "lot_sqft": "12223",
-      "url": "https://www.redfin.com/NJ/Edison/41-Calvert-Ave-W-08820/home/36804141",
-      "source": "Redfin",
-      "photo_url": "https://ssl.cdn-redfin.com/photo/122/islphoto/57R/genIslnoResize.2701357R_0.jpg",
-      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/122/bigphoto/57R/2701357R_0.jpg",
-      "basement_label": "✅ Basement",
-      "garage_label": "🚗 Unknown",
-      "property_road": "🏘️ Residential Street (Calvert Avenue West)",
-      "near_highway": false,
-      "highway_roads": [],
-      "status": "new",
-      "first_seen": "2026-08-03",
-      "run_date": "2026-08-03"
+      "status": "deleted"
     },
     "redfin_203524590": {
       "id": "redfin_203524590",
@@ -1569,89 +1435,16 @@
       "run_date": "2026-08-03"
     },
     "redfin_36772086": {
-      "id": "redfin_36772086",
-      "address": "13 Burnham Rd East Brunswick NJ 08816",
-      "price": "450000",
-      "beds": 3,
-      "baths": 2.0,
-      "lot_sqft": "6499",
-      "url": "https://www.redfin.com/NJ/East-Brunswick/13-Burnham-Rd-08816/home/36772086",
-      "source": "Redfin",
-      "photo_url": "https://ssl.cdn-redfin.com/photo/122/islphoto/76R/genIslnoResize.2701576R_0.jpg",
-      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/122/bigphoto/76R/2701576R_0.jpg",
-      "basement_label": "✅ Basement",
-      "garage_label": "🚗 Unknown",
-      "property_road": "🏘️ Residential Street (Burnham Road)",
-      "near_highway": true,
-      "highway_roads": [
-        {
-          "name": "872-778 NJ-18",
-          "distance_miles": 0.07
-        }
-      ],
-      "status": "new",
-      "first_seen": "2026-08-03",
-      "run_date": "2026-08-03"
+      "status": "deleted"
     },
     "redfin_36976299": {
-      "id": "redfin_36976299",
-      "address": "16 Stockton Rd Kendall Park NJ 08824",
-      "price": "565000",
-      "beds": 3,
-      "baths": 2.0,
-      "lot_sqft": "13499",
-      "url": "https://www.redfin.com/NJ/Kendall-Park/16-Stockton-Rd-08824/home/36976299",
-      "source": "Redfin",
-      "photo_url": "https://ssl.cdn-redfin.com/photo/235/islphoto/814/genIslnoResize.NJMX2012814_0.jpg",
-      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/235/bigphoto/814/NJMX2012814_0.jpg",
-      "basement_label": "✅ Basement",
-      "garage_label": "🚗 Unknown",
-      "property_road": "🏘️ Residential Street (Stockton Road)",
-      "near_highway": false,
-      "highway_roads": [],
-      "status": "new",
-      "first_seen": "2026-08-03",
-      "run_date": "2026-08-03"
+      "status": "deleted"
     },
     "redfin_36795720": {
-      "id": "redfin_36795720",
-      "address": "5 Phillip Dr Edison NJ 08820",
-      "price": "975000",
-      "beds": 4,
-      "baths": 3.0,
-      "lot_sqft": "22002",
-      "url": "https://www.redfin.com/NJ/Edison/5-Phillip-Dr-08820/home/36795720",
-      "source": "Redfin",
-      "photo_url": "https://ssl.cdn-redfin.com/photo/122/islphoto/13R/genIslnoResize.2616113R_0.jpg",
-      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/122/bigphoto/13R/2616113R_0.jpg",
-      "basement_label": "✅ Basement",
-      "garage_label": "🚗 Unknown",
-      "property_road": "🏘️ Residential Street (Phillip Drive)",
-      "near_highway": false,
-      "highway_roads": [],
-      "status": "new",
-      "first_seen": "2026-08-03",
-      "run_date": "2026-08-03"
+      "status": "deleted"
     },
     "redfin_36976409": {
-      "id": "redfin_36976409",
-      "address": "4 Halsey Rd Kendall Park NJ 08824",
-      "price": "674900",
-      "beds": 4,
-      "baths": 2.0,
-      "lot_sqft": "14336",
-      "url": "https://www.redfin.com/NJ/Kendall-Park/4-Halsey-Rd-08824/home/36976409",
-      "source": "Redfin",
-      "photo_url": "https://ssl.cdn-redfin.com/photo/122/islphoto/88M/genIslnoResize.2770088M_0.jpg",
-      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/122/bigphoto/88M/2770088M_0.jpg",
-      "basement_label": "❌ No Basement",
-      "garage_label": "🚗 Unknown",
-      "property_road": "🏘️ Residential Street (Halsey Road)",
-      "near_highway": false,
-      "highway_roads": [],
-      "status": "new",
-      "first_seen": "2026-08-03",
-      "run_date": "2026-08-03"
+      "status": "deleted"
     },
     "redfin_36822664": {
       "id": "redfin_36822664",
@@ -1679,84 +1472,16 @@
       "run_date": "2026-08-03"
     },
     "redfin_36848361": {
-      "id": "redfin_36848361",
-      "address": "16 Ivy Pl Monroe Township NJ 08831",
-      "price": "559000",
-      "beds": 3,
-      "baths": 2.0,
-      "lot_sqft": "7501",
-      "url": "https://www.redfin.com/NJ/Monroe-Township/16-Ivy-Pl-08831/home/36848361",
-      "source": "Redfin",
-      "photo_url": "https://ssl.cdn-redfin.com/photo/122/islphoto/27R/genIslnoResize.2701327R_0.jpg",
-      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/122/bigphoto/27R/2701327R_0.jpg",
-      "basement_label": "✅ Basement",
-      "garage_label": "🚗 Unknown",
-      "property_road": "🏘️ Residential Street (Ashmall Avenue)",
-      "near_highway": false,
-      "highway_roads": [],
-      "status": "new",
-      "first_seen": "2026-08-03",
-      "run_date": "2026-08-03"
+      "status": "deleted"
     },
     "redfin_37795273": {
-      "id": "redfin_37795273",
-      "address": "54 Canterbury Dr Clark NJ 07066-2920",
-      "price": "775000",
-      "beds": 3,
-      "baths": 3.0,
-      "lot_sqft": "15681",
-      "url": "https://www.redfin.com/NJ/Clark/54-Canterbury-Dr-07066/home/37795273",
-      "source": "Redfin",
-      "photo_url": "https://ssl.cdn-redfin.com/photo/121/islphoto/082/genIslnoResize.4042082_2.jpg",
-      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/121/bigphoto/082/4042082_2.jpg",
-      "basement_label": "❌ No Basement",
-      "garage_label": "🚗 2-car garage (Attached Garage)",
-      "property_road": "🏘️ Residential Street (Canterbury Drive)",
-      "near_highway": false,
-      "highway_roads": [],
-      "status": "new",
-      "first_seen": "2026-08-03",
-      "run_date": "2026-08-03"
+      "status": "deleted"
     },
     "redfin_36741274": {
-      "id": "redfin_36741274",
-      "address": "5 Camelot Dr East Brunswick NJ 08816",
-      "price": "699000",
-      "beds": 3,
-      "baths": 2.0,
-      "lot_sqft": null,
-      "url": "https://www.redfin.com/NJ/East-Brunswick/5-Camelot-Dr-08816/home/36741274",
-      "source": "Redfin",
-      "photo_url": "https://ssl.cdn-redfin.com/photo/122/islphoto/69R/genIslnoResize.2617969R_0.jpg",
-      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/122/bigphoto/69R/2617969R_0.jpg",
-      "basement_label": "✅ Basement",
-      "garage_label": "🚗 Unknown",
-      "property_road": "🏘️ Residential Street (Camelot Drive)",
-      "near_highway": false,
-      "highway_roads": [],
-      "status": "new",
-      "first_seen": "2026-08-03",
-      "run_date": "2026-08-03"
+      "status": "deleted"
     },
     "redfin_36871781": {
-      "id": "redfin_36871781",
-      "address": "2284 Polk Ave North Brunswick NJ 08902",
-      "price": "650000",
-      "beds": 4,
-      "baths": 3.0,
-      "lot_sqft": "16000",
-      "url": "https://www.redfin.com/NJ/North-Brunswick/2284-Polk-Ave-08902/home/36871781",
-      "source": "Redfin",
-      "photo_url": "https://ssl.cdn-redfin.com/photo/122/islphoto/47R/genIslnoResize.2617647R_0.jpg",
-      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/122/bigphoto/47R/2617647R_0.jpg",
-      "basement_label": "✅ Basement",
-      "garage_label": "🚗 Unknown",
-      "property_road": "🏘️ Residential Street (Polk Avenue)",
-      "near_highway": false,
-      "highway_roads": [],
-      "status": "new",
-      "first_seen": "2026-08-03",
-      "run_date": "2026-08-03"
+      "status": "deleted"
     },
     "zillow_39879665": {
       "id": "zillow_39879665",
@@ -1839,44 +1564,10 @@
       "run_date": "2026-08-03"
     },
     "redfin_38013572": {
-      "id": "redfin_38013572",
-      "address": "2349 COLONIAL Dr Rahway NJ 07065",
-      "price": "559000",
-      "beds": 3,
-      "baths": 2.0,
-      "lot_sqft": null,
-      "url": "https://www.redfin.com/NJ/Rahway/2349-Colonial-Dr-07065/home/38013572",
-      "source": "Redfin",
-      "photo_url": "https://ssl.cdn-redfin.com/photo/125/islphoto/181/genIslnoResize.260015181_4.jpg",
-      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/125/bigphoto/181/260015181_4.jpg",
-      "basement_label": "✅ Basement",
-      "garage_label": "🚗 Unknown",
-      "property_road": "🏘️ Residential Street (Jowett Place)",
-      "near_highway": false,
-      "highway_roads": [],
-      "status": "new",
-      "first_seen": "2026-08-03",
-      "run_date": "2026-08-03"
+      "status": "deleted"
     },
     "redfin_37928547": {
-      "id": "redfin_37928547",
-      "address": "915 Essex Ave Linden NJ 07036-2231",
-      "price": "475000",
-      "beds": 3,
-      "baths": 2.0,
-      "lot_sqft": "4356",
-      "url": "https://www.redfin.com/NJ/Linden/915-Essex-Ave-07036/home/37928547",
-      "source": "Redfin",
-      "photo_url": "https://ssl.cdn-redfin.com/photo/121/islphoto/938/genIslnoResize.4042938_3.jpg",
-      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/121/bigphoto/938/4042938_3.jpg",
-      "basement_label": "❌ No Basement",
-      "garage_label": "🚗 Unknown",
-      "property_road": "🏘️ Residential Street (Essex Avenue)",
-      "near_highway": false,
-      "highway_roads": [],
-      "status": "new",
-      "first_seen": "2026-08-03",
-      "run_date": "2026-08-03"
+      "status": "deleted"
     },
     "redfin_37960993": {
       "id": "redfin_37960993",
@@ -1919,29 +1610,7 @@
       "run_date": "2026-08-03"
     },
     "redfin_36764757": {
-      "id": "redfin_36764757",
-      "address": "23 Monroe Ave Carteret NJ 07008",
-      "price": "549500",
-      "beds": 3,
-      "baths": 2.0,
-      "lot_sqft": null,
-      "url": "https://www.redfin.com/NJ/Carteret/23-Monroe-Ave-07008/home/36764757",
-      "source": "Redfin",
-      "photo_url": "https://ssl.cdn-redfin.com/photo/122/islphoto/71R/genIslnoResize.2700171R_0.jpg",
-      "photo_url_hires": "https://ssl.cdn-redfin.com/photo/122/bigphoto/71R/2700171R_0.jpg",
-      "basement_label": "✅ Basement",
-      "garage_label": "🚗 Unknown",
-      "property_road": "🏘️ Residential Street (Monroe Avenue)",
-      "near_highway": true,
-      "highway_roads": [
-        {
-          "name": "New Jersey Turnpike",
-          "distance_miles": 0.1
-        }
-      ],
-      "status": "new",
-      "first_seen": "2026-08-03",
-      "run_date": "2026-08-03"
+      "status": "deleted"
     },
     "zillow_39984892": {
       "id": "zillow_39984892",

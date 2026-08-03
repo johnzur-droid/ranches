@@ -64,20 +64,42 @@ SEARCH_AREAS = [
 
 # Towns to exclude from results — radius bleed into unwanted municipalities
 TOWN_BLACKLIST = {
+    # Original blacklist
     "clark", "monroe", "monroe township", "spotswood",
-    "east brunswick", "carteret", "west orange", "newark"
+    "east brunswick", "carteret", "west orange", "newark",
+    # Added S006 run 2
+    "avenel", "edison", "kendall park", "linden",
+    "new brunswick", "north brunswick", "rahway",
 }
 
-def town_is_blacklisted(address):
-    """Return True if the address city is in the blacklist."""
+def _extract_city(address):
+    """Extract normalized city name from NJ address string."""
     if not address:
+        return ""
+    a = address.lower().strip()
+    # Remove zip+4
+    a = re.sub(r"(\d{5})-\d{4}", r"", a)
+    # Match everything before NJ + ZIP
+    m = re.search(r"^(.+?)\s+nj\s+\d{5}", a)
+    if not m:
+        return ""
+    before = m.group(1).strip()
+    # Strip Twp/Boro/Township/Borough suffix
+    before = re.sub(r"\s+(twp\.?|boro\.?|township|borough)$", "", before).strip()
+    # Strip street type — take words after last street abbreviation
+    street_abbrevs = r"(rd|st|ave|dr|ln|blvd|ct|way|pl|ter|road|street|avenue|drive|lane|boulevard|court)"
+    parts = re.split(street_abbrevs, before)
+    city = parts[-1].strip() if len(parts) > 1 else before.split()[-1] if before else ""
+    return city.strip()
+
+def town_is_blacklisted(address):
+    """Return True if the address city matches any blacklisted town."""
+    city = _extract_city(address)
+    if not city:
         return False
-    a = address.lower()
-    for town in TOWN_BLACKLIST:
-        # Match town name followed by optional twp/boro/township/borough and NJ
-        import re as _re
-        pattern = rf"{_re.escape(town)}"
-        if _re.search(pattern, a):
+    # Exact match OR city starts with blacklisted name (handles 'north brunswick' etc)
+    for bl in TOWN_BLACKLIST:
+        if city == bl or city.startswith(bl):
             return True
     return False
 
