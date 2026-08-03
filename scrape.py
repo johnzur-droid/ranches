@@ -62,6 +62,25 @@ SEARCH_AREAS = [
      "zillow_location": "Cranford, NJ"},
 ]
 
+# Towns to exclude from results — radius bleed into unwanted municipalities
+TOWN_BLACKLIST = {
+    "clark", "monroe", "monroe township", "spotswood",
+    "east brunswick", "carteret", "west orange", "newark"
+}
+
+def town_is_blacklisted(address):
+    """Return True if the address city is in the blacklist."""
+    if not address:
+        return False
+    a = address.lower()
+    for town in TOWN_BLACKLIST:
+        # Match town name followed by optional twp/boro/township/borough and NJ
+        import re as _re
+        pattern = rf"{_re.escape(town)}"
+        if _re.search(pattern, a):
+            return True
+    return False
+
 MIN_BEDS  = 3      # confirmed S003
 MIN_BATHS = 2.0
 MAX_PRICE = 1_000_000
@@ -561,6 +580,10 @@ def process_redfin_area(area):
             print(f"    skip (out of area): {addr}")
             continue
 
+        if town_is_blacklisted(addr):
+            print(f"    skip (blacklisted town): {addr}")
+            continue
+
         if not is_ranch:
             print(f"    skip (not ranch): {addr}")
             continue
@@ -815,6 +838,10 @@ def process_zillow_area(area):
         is_ranch, basement_label, garage_label = zillow_is_ranch(details)
 
         addr = zillow_fmt_address(r)
+
+        if town_is_blacklisted(addr):
+            print(f"    skip (blacklisted town): {addr}")
+            continue
 
         # Distance post-filter — drop listings outside 12 miles of any town center
         loc = r.get("location") or {}
