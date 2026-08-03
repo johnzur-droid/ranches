@@ -1352,7 +1352,7 @@
       "property_road": "🏘️ Residential Street (Duval Street)",
       "near_highway": false,
       "highway_roads": [],
-      "status": "new",
+      "status": "favorite",
       "first_seen": "2026-08-03",
       "run_date": "2026-08-03"
     },
