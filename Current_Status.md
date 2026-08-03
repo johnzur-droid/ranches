@@ -1,40 +1,88 @@
 # Real Estate Search — Current Status
 
-**Session:** S005
-**Date:** 2026-07-17
+**Session:** S006
+**Date:** 2026-08-03
 
 ---
 
 ## 🚀 Current Environment State
 
-**Live site:** ranches.johnzur.com (also johnzur-droid.github.io/ranches)
+**Live site:** ranches.johnzur.com
 **Repo:** johnzur-droid/ranches (public)
-**Cloudflare Worker:** ranches-proxy.johnzur.workers.dev (v2 — GET + delta POST)
+**Cloudflare Worker:** ranches-proxy.johnzur.workers.dev (v2 — GET + delta POST + purge_deleted)
 **Python:** 3.13.1, Windows 11, scripts at C:/Users/johnz/scripts
-**RealtyAPI key:** ***REALTYAPI_KEY*** — ~216 calls used, ~34 remaining. NEW KEY NEEDED before next run.
-**Google Maps API key:** ***MAPS_KEY***
-**Cloudflare API token:** cfut_***REDACTED***
-**Cloudflare Account ID:** ***CF_ACCOUNT_ID***
-**PAT:** stored in memory slot 10
+**RealtyAPI key:** rt_LdoGUUQL8l2FuKjwTjtWvPCC — ~94 calls remaining. New key needed next month (free plan = 250/month).
+**Google Maps API key:** stored in memory slot 10
+**Cloudflare API token / Account ID / PAT:** stored in memory slot 10
 **Custom domain:** ranches.johnzur.com — Netlify DNS CNAME → johnzur-droid.github.io
+**State:** 170 listings (new=0, fav=5, think=15, del=150) — queue cleared by JZ
 
 ---
 
 ## 📋 Open Work Queue
 
-**Active — S006 priority:**
-1. New RealtyAPI key — get and update GitHub Secret REALTYAPI_KEY before next run
-2. Calculate exact call budget before triggering next run (production run costs ~180 calls)
-3. JZ reviews 124 listings — provide feedback on display/categorization issues
-4. Town whitelist/blacklist — JZ to determine after reviewing (Edison, Clark, Spotswood candidates)
-5. Revoke Actions write from Github-Ranches PAT (deferred since S003)
-6. Stale Realtor.com + Staten Island listings — JZ deletes manually
-7. Verify ranches.johnzur.com HTTPS provisioned by GitHub Pages
+**Active — S007 priority:**
+1. Revoke Actions write from GitHub-Ranches PAT (deferred since S003)
+2. New RealtyAPI key next month before next run
+3. Calculate exact call budget before triggering next run
+4. Zillow photo field fix in scrape.py — use mediumImageLink/hiResImageLink not propertyPhotoLinks
 
 **Known, deferred:**
-- Stale listing ID detection — listings that get relisted under new ID stay as orphans forever
+- Stale listing ID detection — listings that get relisted under new ID stay as orphans
 - Redfin bylocation region ID format never resolved — stays on bycoordinates
-- Min beds filter (3) may be too restrictive — revisit after JZ reviews listings
+- 🚨 NEVER commit state.json directly — use GitHub API PUT with current SHA only (violated twice S006 — cost JZ hours of work)
+
+---
+
+## 📝 S006 Work Completed
+
+**Filter bar (7 filters):**
+- Town (dynamic checkboxes from data), Price (dollars), Lot (acres), Home Size (sqft min/max)
+- Basement (confirmed/unconfirmed/none), Garage (has/no)
+- Road Type (4 types: residential/minor/secondary/primary) — separate from Near Highway
+- Near Highway (binary dropdown: Any / Near / Not Near)
+- Filters apply across all tabs simultaneously, exempt Deleted tab
+- Reset button, "X of Y shown" counter, filter button turns green when active
+
+**Card display improvements:**
+- Near Highway moved from badges row to dedicated info-line: 🛣️ Near Highway: [name] — [dist] mi
+- Home sqft displayed: 🏠 1,298 sqft
+- Placeholder hints on price (e.g. 400000) and lot (e.g. 0.25) filter inputs
+
+**Bug fixes:**
+- Removed busy_road entirely — was duplicating near_highway, caused contradictory display
+- Fixed lot_sqft normalization — Zillow acres strings ("0.37 acres") converted to sqft
+- Fixed malformed address Route202206 → US-202/206, re-geocoded + re-enriched
+- Fixed deduplication — normalize_address now strips zip+4 suffixes
+- Removed 2 duplicate 1280 Oxford Rd listings (Redfin + Zillow)
+- Fixed stale banner firing on every save — now only fires on new scrape
+- Fixed recurring hw-line template literal syntax error (switched to perl for emoji edits)
+- Fixed apple-touch-icon path — absolute paths restored
+
+**New features:**
+- ? help dropdown menu: User Guide, Video Walkthrough, Slide Deck PDF, Infographic
+- Public HTML user guide (guide.html) at ranches.johnzur.com/guide.html
+- Private Word doc user guide with credentials (delivered to JZ)
+- Purge All button in Deleted tab — strips data, keeps ID only, prevents re-appearance
+- PWA manifest + favicon-192 — Chrome desktop install button enabled
+- Town blacklist (15 towns): clark, monroe, spotswood, east brunswick, carteret, west orange, newark, avenel, edison, kendall park, linden, new brunswick, north brunswick, rahway
+- MIN_SQFT=1500 hard filter in scrape.py — drops listings where sqft known and below 1500
+- home_sqft captured in scrape.py for both Redfin (search result) and Zillow (resoFacts.livingArea)
+
+**Scrape runs:**
+- S006 Run 1: failed — syntax error in scrape.py (fixed immediately)
+- S006 Run 2: success — 26 new listings, ~156 RealtyAPI calls, key rt_LdoGUUQL8l2FuKjwTjtWvPCC
+
+**State.json incidents (critical lessons):**
+- Incident 1: busy_road commit overwrote JZ work — recovered from b132fe8
+- Incident 2: sqft commit overwrote JZ work — recovered from 49f08b81
+- Root cause: pulling stale state.json from git and committing it over live worker state
+- Fix: state.json is NEVER committed directly — use GitHub API PUT with current SHA only
+
+**Infrastructure:**
+- Worker redeployed with purge_deleted action
+- Worker GITHUB_TOKEN secret fixed after accidental placeholder deployment
+- DNS re-verification resolved TLS certificate failure on ranches.johnzur.com
 
 ---
 
@@ -42,81 +90,13 @@
 
 **Architecture — full rewrite:**
 - Worker v2: GET returns {listings, sha}, POST accepts {id, field, value} delta only
-- Worker merges one field on one listing — scraper fields never touched by browser
-- 409 conflict retry logic (3 retries, 200ms delay) — handles simultaneous saves
 - Shell HTML — no embedded listings, all data fetched live from worker on page load
-- All card rendering moved to client-side JavaScript
-- Save queue — serialized, no concurrent saves, optimistic UI update
-- Stale page banner when SHA changes after save
+- 409 conflict retry logic (3 retries, 200ms delay)
 
 **New features:**
-- Photo thumbnails on every card (medium res) — click to open lightbox (high-res)
+- Photo thumbnails + lightbox (hi-res on tap)
 - Deleted tab with Restore button
-- Christine heart + Not Interested buttons (mutually exclusive)
+- Christine heart + Not Interested buttons
 - Both Love It section in nav
-- Nav counts driven from state object, never from DOM
-- New This Week = client-side filter of Unreviewed, not separate section
 
-**scrape.py changes:**
-- Basement is badge not filter (both sources)
-- Basement filter removed from Zillow search parameters
-- Garage label extracted from Redfin amenities + Zillow resoFacts
-- Property road classification via Nominatim reverse geocode (OSM highway type)
-- NJ-only filter — drops out-of-state listings pre-detail-call
-- Unit/condo filter — drops #NNN addresses pre-detail-call
-- Photo URLs extracted from search response (photo_url + photo_url_hires)
-- save_state fixed with ensure_ascii=False — prevents emoji double-encoding
-- generate_html produces shell only — no embedded state
-
-**Bugs found and fixed:**
-- Emoji double-encoding in state.json (latin-1/utf-8 mismatch in GitHub Actions)
-- Worker readState using atob() without TextDecoder — corrupted emojis
-- Zillow Basement filter still in search params after removal from detail processing
-- Favicon paths used /ranches/ prefix — broken on custom domain
-
-**Infrastructure:**
-- Cloudflare API token obtained — worker now deployable programmatically
-- Custom domain ranches.johnzur.com live via Netlify DNS
-- Cron disabled — manual trigger only until JZ approves next run
-
-**Production run (S005):**
-- 131 total listings, 55 new this run
-- 176 RealtyAPI calls — over budget due to basement filter removal impact not calculated
-- State.json emoji corruption repaired post-run
-
----
-
-## 📝 S004 Work Completed
-
-**scrape.py fixes:**
-- Near Industrial removed entirely
-- Satellite URL fixed
-- fmt_price unwraps Zillow price dict
-- fmt_lot fixed for bare integer strings
-- check_location_risk rewritten — returns highway_roads list
-- merge_into_state dedupes cross-run duplicates
-- run_date added to new listings
-
-**Page architecture:**
-- Sticky header + nav, 4-section Option B nav
-- New This Week, Unreviewed, Favorites, Think About It sections
-- Dynamic nav counts, floating scroll-to-top
-
-**Testing:**
-- test_run.py written — Redfin only, 4 calls on third key
-
----
-
-## 📝 S003 Work Completed
-
-Complete scrape.py rewrite — Redfin + Zillow only, 3 towns, confirmed endpoints via live calls, 12-mile geo filter, Google Maps enrichment, GitHub Actions workflow.
-
----
-
-## 📝 S002 Work Completed
-
-Verified Redfin + Zillow as sole sources. Dropped Realtor.com + Homes.com. Built live site on GitHub Pages with Cloudflare Worker. 10 legacy Realtor.com/Redfin/Zillow entries remain in state.json.
-
----
-
-*Updated: S005 — 2026-07-17*
+*Updated: S006 — 2026-08-03*
