@@ -1495,9 +1495,11 @@
           "distance_miles": 0.24
         }
       ],
-      "status": "new",
+      "status": "deleted",
       "first_seen": "2026-08-03",
-      "run_date": "2026-08-03"
+      "run_date": "2026-08-03",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "redfin_36848361": {
       "status": "deleted"
