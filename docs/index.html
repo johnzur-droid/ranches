@@ -42,6 +42,9 @@
   .source-zillow{background:#fef9c3;color:#854d0e;}
   .source-redfin{background:#fee2e2;color:#991b1b;}
   .source-realtor-com{background:#e0f2fe;color:#0c4a6e;}
+  .source-zillow.th{background:#f0fdf4;color:#166534;}
+  .source-redfin.th{background:#f0fdf4;color:#166534;}
+  .listing-type-townhouse .card{border-left:3px solid #166534;}
   .badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
   .badge{font-size:.75rem;font-weight:600;padding:3px 10px;border-radius:4px;}
   .badge-basement-yes{background:#dcfce7;color:#166534;}
@@ -118,6 +121,7 @@
     <button onclick="showTab('both',this)">💑 (<span id="nav-both">0</span>)</button>
     <button onclick="showTab('think',this)">🤔 Maybe (<span id="nav-think">0</span>)</button>
     <button onclick="showTab('deleted',this)">🗑️ Deleted (<span id="nav-deleted">0</span>)</button>
+    <button onclick="showTab('townhouse',this)">🏘️ Townhouses (<span id="nav-townhouse">0</span>)</button>
     <button id="filter-toggle" onclick="toggleFilterBar(this)" style="margin-left:auto;">🔍 Filter</button>
     <div id="help-menu-wrap" style="position:relative;border-left:1px solid var(--border);">
       <button id="help-btn" onclick="toggleHelpMenu()" style="font-size:.9rem;font-weight:700;padding:8px 14px;border:none;background:none;color:var(--muted);cursor:pointer;line-height:1;" title="Resources">?</button>
@@ -213,6 +217,7 @@
   <div id="tab-both"          class="tab-pane hidden"></div>
   <div id="tab-think"         class="tab-pane hidden"></div>
   <div id="tab-deleted"       class="tab-pane hidden"></div>
+  <div id="tab-townhouse"     class="tab-pane hidden"></div>
 </main>
 <div id="toast"></div>
 <div id="lightbox" onclick="closeLightbox()"><img id="lightbox-img" src="" alt="Property photo"></div>
@@ -281,9 +286,23 @@ function isNewThisWeek(listing) {
   return (Date.now() - d.getTime()) / 86400000 <= DAYS_NEW;
 }
 
+function isTownhouse(L) {
+  return L.listing_type === "townhouse";
+}
+
 function groupByStatus() {
-  const groups = {unreviewed:[], favorite:[], both:[], think:[], deleted:[]};
+  const groups = {unreviewed:[], favorite:[], both:[], think:[], deleted:[], townhouse:[]};
   for (const [id, L] of Object.entries(state)) {
+    // Townhouses go to their own tab regardless of status (except deleted)
+    if (isTownhouse(L)) {
+      const s = L.status || "new";
+      if (s === "deleted") {
+        groups.deleted.push([id,L]);
+      } else {
+        groups.townhouse.push([id,L]);
+      }
+      continue;
+    }
     const s = L.status || "new";
     if (s === "deleted") {
       groups.deleted.push([id,L]);
@@ -304,6 +323,12 @@ function groupByStatus() {
     if (rd !== 0) return rd;
     const lm = (b[1].last_modified||"").localeCompare(a[1].last_modified||"");
     return lm !== 0 ? lm : (b[1].first_seen||"").localeCompare(a[1].first_seen||"");
+  });
+  // Sort townhouses by price ascending
+  groups.townhouse.sort((a,b) => {
+    const pa = priceNum(a[1].price) || 9999999;
+    const pb = priceNum(b[1].price) || 9999999;
+    return pa - pb;
   });
   return groups;
 }
@@ -436,6 +461,15 @@ function renderAll() {
   // Tab: Maybe
   renderSimpleTab("tab-think", think, "Nothing in Maybe yet.");
 
+  // Tab: Townhouses — separate tab, all statuses except deleted, sorted by price
+  const thPane = document.getElementById("tab-townhouse");
+  if (groups.townhouse.length === 0) {
+    thPane.innerHTML = '<p class="empty">No townhouse listings found.</p>';
+  } else {
+    const thFiltered = filterItems(groups.townhouse, false);
+    thPane.innerHTML = `<div class="grid">${thFiltered.map(([id,L]) => renderCard(id,L)).join("")}</div>`;
+  }
+
   // Tab: Deleted — always unfiltered, with Purge All button
   const delPane = document.getElementById("tab-deleted");
   if (groups.deleted.length === 0) {
@@ -483,6 +517,7 @@ function updateNavCounts(groups, ntwCount) {
   document.getElementById("nav-both").textContent          = groups.both.length;
   document.getElementById("nav-think").textContent         = groups.think.length;
   document.getElementById("nav-deleted").textContent       = groups.deleted.length;
+  document.getElementById("nav-townhouse").textContent     = groups.townhouse.length;
 }
 
 // ── Button handlers ───────────────────────────────────────────────────────────
