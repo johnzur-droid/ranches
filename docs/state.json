@@ -2401,9 +2401,11 @@
       "property_road": "",
       "near_highway": false,
       "highway_roads": [],
-      "status": "favorite",
+      "status": "new",
       "first_seen": "2026-08-16",
-      "run_date": "2026-08-16"
+      "run_date": "2026-08-16",
+      "christine_favorite": false,
+      "christine_pass": false
     },
     "zillow_th_39861695": {
       "id": "zillow_th_39861695",
