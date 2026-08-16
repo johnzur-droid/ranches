@@ -105,7 +105,7 @@ def town_is_blacklisted(address):
 
 MIN_BEDS  = 3      # confirmed S003
 MIN_BATHS = 2.0
-MAX_PRICE = 1_000_000
+MAX_PRICE = 800_000  # updated S007 — hard cap for both ranch and townhouse
 MIN_SQFT  = 1500   # drop listings where sqft is known AND below this
 
 # Quarter mile in meters for Google Maps proximity checks
@@ -773,6 +773,11 @@ def process_redfin_townhouse_area(area):
     raw = redfin_townhouse_search(area)
     listings = []
     for r in raw:
+        # propertyType 13 = Townhouse on Redfin — drop anything else (e.g. SFH slipthrough)
+        if r.get("propertyType") != 13:
+            print(f"    skip (not townhouse, type={r.get('propertyType')}): {redfin_fmt_address(r)}")
+            continue
+
         property_id = r.get("propertyId") or r.get("property_id")
         listing_id  = r.get("listingId")  or r.get("listing_id")
 
@@ -1291,6 +1296,12 @@ def process_zillow_townhouse_area(area):
     raw = zillow_townhouse_search(area)
     listings = []
     for r in raw:
+        # Drop non-townhome results — Zillow keyword search returns singleFamily slipthroughs
+        prop_type = r.get("propertyType") or ""
+        if prop_type.lower() != "townhome":
+            print(f"    skip (not townhome, type={prop_type}): {zillow_fmt_address(r)}")
+            continue
+
         zpid      = r.get("zpid")
         raw_price = r.get("price") or r.get("unformattedPrice") or r.get("list_price")
         if isinstance(raw_price, dict):
@@ -2102,13 +2113,35 @@ function renderAll() {
   // Tab: Maybe
   renderSimpleTab("tab-think", think, "Nothing in Maybe yet.");
 
-  // Tab: Townhouses — separate tab, all statuses except deleted, sorted by price
+  // Tab: Townhouses — grouped by status: favorites, maybe, unreviewed
   const thPane = document.getElementById("tab-townhouse");
   if (groups.townhouse.length === 0) {
     thPane.innerHTML = '<p class="empty">No townhouse listings found.</p>';
   } else {
     const thFiltered = filterItems(groups.townhouse, false);
-    thPane.innerHTML = `<div class="grid">${thFiltered.map(([id,L]) => renderCard(id,L)).join("")}</div>`;
+    const thFav      = thFiltered.filter(([,L]) => L.status === "favorite");
+    const thThink    = thFiltered.filter(([,L]) => L.status === "think");
+    const thNew      = thFiltered.filter(([,L]) => !L.status || L.status === "new");
+    let thHtml = "";
+    if (thFav.length) {
+      thHtml += `<div class="run-group">
+        <div class="run-group-header"><span class="run-date-label">⭐ Favorites (${thFav.length})</span></div>
+        <div class="grid">${thFav.map(([id,L]) => renderCard(id,L)).join("")}</div>
+      </div>`;
+    }
+    if (thThink.length) {
+      thHtml += `<div class="run-group">
+        <div class="run-group-header"><span class="run-date-label">🤔 Maybe (${thThink.length})</span></div>
+        <div class="grid">${thThink.map(([id,L]) => renderCard(id,L)).join("")}</div>
+      </div>`;
+    }
+    if (thNew.length) {
+      thHtml += `<div class="run-group">
+        <div class="run-group-header"><span class="run-date-label">📋 Unreviewed (${thNew.length})</span></div>
+        <div class="grid">${thNew.map(([id,L]) => renderCard(id,L)).join("")}</div>
+      </div>`;
+    }
+    thPane.innerHTML = thHtml || '<p class="empty">No listings match current filters.</p>';
   }
 
   // Tab: Deleted — always unfiltered, with Purge All button
