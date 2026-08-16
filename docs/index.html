@@ -461,13 +461,35 @@ function renderAll() {
   // Tab: Maybe
   renderSimpleTab("tab-think", think, "Nothing in Maybe yet.");
 
-  // Tab: Townhouses — separate tab, all statuses except deleted, sorted by price
+  // Tab: Townhouses — grouped by status: favorites, maybe, unreviewed
   const thPane = document.getElementById("tab-townhouse");
   if (groups.townhouse.length === 0) {
     thPane.innerHTML = '<p class="empty">No townhouse listings found.</p>';
   } else {
     const thFiltered = filterItems(groups.townhouse, false);
-    thPane.innerHTML = `<div class="grid">${thFiltered.map(([id,L]) => renderCard(id,L)).join("")}</div>`;
+    const thFav      = thFiltered.filter(([,L]) => L.status === "favorite");
+    const thThink    = thFiltered.filter(([,L]) => L.status === "think");
+    const thNew      = thFiltered.filter(([,L]) => !L.status || L.status === "new");
+    let thHtml = "";
+    if (thFav.length) {
+      thHtml += `<div class="run-group">
+        <div class="run-group-header"><span class="run-date-label">⭐ Favorites (${thFav.length})</span></div>
+        <div class="grid">${thFav.map(([id,L]) => renderCard(id,L)).join("")}</div>
+      </div>`;
+    }
+    if (thThink.length) {
+      thHtml += `<div class="run-group">
+        <div class="run-group-header"><span class="run-date-label">🤔 Maybe (${thThink.length})</span></div>
+        <div class="grid">${thThink.map(([id,L]) => renderCard(id,L)).join("")}</div>
+      </div>`;
+    }
+    if (thNew.length) {
+      thHtml += `<div class="run-group">
+        <div class="run-group-header"><span class="run-date-label">📋 Unreviewed (${thNew.length})</span></div>
+        <div class="grid">${thNew.map(([id,L]) => renderCard(id,L)).join("")}</div>
+      </div>`;
+    }
+    thPane.innerHTML = thHtml || '<p class="empty">No listings match current filters.</p>';
   }
 
   // Tab: Deleted — always unfiltered, with Purge All button
