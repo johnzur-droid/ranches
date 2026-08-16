@@ -1685,8 +1685,8 @@ def _shell_html(run_time, worker_url):
   .home-btn .counts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px;}
   .home-count{font-size:.75rem;font-weight:600;padding:2px 10px;border-radius:20px;background:var(--bg);}
   /* ── Section screens ── */
-  .section-screen{display:none;flex-direction:column;min-height:100vh;}
-  .section-screen.active{display:flex;}
+  .section-screen{display:none;min-height:100vh;}
+  .section-screen.active{display:block;}
   .sticky-top{position:sticky;top:0;z-index:100;}
   header{background:var(--accent);color:#fff;padding:14px 32px;display:flex;align-items:center;gap:12px;}
   header.th{background:var(--accent-th);}
@@ -1698,7 +1698,7 @@ def _shell_html(run_time, worker_url):
   nav button{background:none;border:none;padding:12px 10px;font-size:.85rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap;}
   nav button.active{color:var(--accent);border-bottom-color:var(--accent);}
   .th-nav button.active{color:var(--accent-th);border-bottom-color:var(--accent-th);}
-  main{padding:24px 32px;max-width:1400px;margin:0 auto;flex:1;}
+  main{padding:24px 32px;max-width:1400px;margin:0 auto;}
   .run-group{margin-bottom:32px;}
   .run-group-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
   .run-date-label{font-size:.82rem;font-weight:600;color:var(--muted);}
