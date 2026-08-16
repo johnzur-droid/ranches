@@ -131,6 +131,7 @@ RANCH_KEYWORDS    = {"ranch", "single floor", "one level", "one-level", "1 story
 BASEMENT_KEYWORDS = {"basement", "full basement", "finished basement",
                      "unfinished basement", "partial basement", "walk-out basement",
                      "walkout basement", "walk out basement"}
+TOWNHOUSE_KEYWORDS = {"townhouse", "town house", "townhome", "town home"}
 
 # ---------------------------------------------------------------------------
 # RealtyAPI helper
@@ -662,6 +663,229 @@ def process_redfin_area(area):
     return listings
 
 # ---------------------------------------------------------------------------
+# Redfin — Townhouse
+# ---------------------------------------------------------------------------
+
+def redfin_townhouse_search(area):
+    """
+    Search Redfin for townhouses by coordinates.
+    keyword=townhouse confirmed returning propertyType=13 (townhouse).
+    homeType=Townhouse used to narrow results.
+    """
+    print(f"  Redfin TH search: {area['name']}...")
+    data = api_get(REDFIN_BASE, "/search/bycoordinates", {
+        "latitude":          area["lat"],
+        "longitude":         area["lng"],
+        "radius":            area["radius"],
+        "keyword":           "townhouse",
+        "homeType":          "Townhouse",
+        "minBeds":           MIN_BEDS,
+        "baths":             MIN_BATHS,
+        "status":            "for_sale",
+        "maxPrice":          MAX_PRICE,
+        "excludeLandLeases": True,
+    })
+    if not data:
+        return []
+    raw = data.get("searchResults") or []
+    results = [item.get("homeData") or item for item in raw]
+    print(f"    → {len(results)} raw hits")
+    return results
+
+
+def redfin_townhouse_labels(details):
+    """
+    Extract basement + garage labels from Redfin details for a townhouse.
+    No ranch check — keyword=townhouse confirms type.
+    Returns (basement_label, garage_label)
+    """
+    if not details:
+        return "", "🚗 Unknown"
+
+    details_body = details.get("details") or details
+    amenities    = details_body.get("amenities") or {}
+    description  = str(details_body.get("description") or details.get("description") or "").lower()
+
+    basement_yn     = False
+    basement_filled = False
+    room_desc_text  = ""
+    garage_spaces   = None
+    garage_desc     = []
+
+    for sg in amenities.get("superGroups", []):
+        for ag in sg.get("amenityGroups", []):
+            for entry in ag.get("amenityEntries", []):
+                name = (entry.get("amenityName") or "").strip()
+                vals = [str(v).lower() for v in (entry.get("amenityValues") or [])]
+                val_str = " ".join(vals)
+
+                if name == "Basement YN":
+                    basement_yn = "yes" in vals
+                elif name == "Basement" and vals:
+                    basement_filled = True
+                elif name == "Room Description":
+                    room_desc_text = val_str
+                elif name == "# Of Garage Spaces" and vals:
+                    try:
+                        garage_spaces = int(vals[0])
+                    except (ValueError, TypeError):
+                        pass
+                elif name == "Garage Description" and vals:
+                    garage_desc = [str(v) for v in (entry.get("amenityValues") or [])]
+
+    # Basement label
+    desc_has_basement = (
+        any(kw in description for kw in BASEMENT_KEYWORDS) or
+        any(kw in room_desc_text for kw in BASEMENT_KEYWORDS)
+    )
+    if basement_yn:
+        val = room_desc_text + " " + description
+        if "finish" in val and "unfinish" not in val:
+            basement_label = "✅ Finished Basement"
+        elif "unfinish" in val:
+            basement_label = "✅ Unfinished Basement"
+        else:
+            basement_label = "✅ Basement"
+    elif basement_filled:
+        basement_label = "✅ Basement"
+    elif desc_has_basement:
+        basement_label = "⚠️ Basement Unconfirmed"
+    elif basement_yn is False:
+        basement_label = "❌ No Basement"
+    else:
+        basement_label = ""
+
+    # Garage label
+    if garage_spaces is not None and garage_spaces > 0:
+        desc_parts = ", ".join(garage_desc) if garage_desc else ""
+        garage_label = f"🚗 {garage_spaces}-car garage ({desc_parts})" if desc_parts else f"🚗 {garage_spaces}-car garage"
+    elif garage_spaces == 0:
+        garage_label = "🚗 No garage"
+    elif any(kw in description for kw in ["garage", "carport"]):
+        garage_label = "🚗 Garage (from description)"
+    else:
+        garage_label = "🚗 Unknown"
+
+    return basement_label, garage_label
+
+
+def process_redfin_townhouse_area(area):
+    raw = redfin_townhouse_search(area)
+    listings = []
+    for r in raw:
+        property_id = r.get("propertyId") or r.get("property_id")
+        listing_id  = r.get("listingId")  or r.get("listing_id")
+
+        price_info = r.get("priceInfo") or {}
+        price = price_info.get("amount") or price_info.get("int64Value")
+        if not price:
+            price = r.get("price") or r.get("list_price")
+
+        baths = r.get("baths") or r.get("bathrooms")
+        beds  = r.get("beds")  or r.get("bedrooms")
+
+        try:
+            if price and float(str(price).replace(",", "")) > MAX_PRICE:
+                continue
+        except (TypeError, ValueError):
+            pass
+        try:
+            if baths and float(str(baths).replace(",", "")) < MIN_BATHS:
+                continue
+        except (TypeError, ValueError):
+            pass
+
+        if not property_id or not listing_id:
+            print(f"    skip (missing IDs): {redfin_fmt_address(r)}")
+            continue
+
+        addr_info   = r.get("addressInfo") or {}
+        addr_street = addr_info.get("formattedStreetLine") or ""
+        addr_state  = addr_info.get("state") or addr_info.get("stateCode") or ""
+
+        if addr_state and addr_state.upper() != "NJ":
+            print(f"    skip (out of state: {addr_state}): {addr_street}")
+            continue
+
+        # Unit/condo filter — townhouses may share building addresses; allow unit numbers
+        # (unlike ranches where unit numbers indicate condos)
+
+        details = redfin_details(property_id, listing_id)
+        basement_label, garage_label = redfin_townhouse_labels(details)
+
+        addr = redfin_fmt_address(r)
+
+        centroid = (r.get("addressInfo") or {}).get("centroid") or {}
+        if isinstance(centroid, dict):
+            centroid = centroid.get("centroid") or centroid
+        r_lat = centroid.get("latitude")
+        r_lng = centroid.get("longitude")
+        if r_lat and r_lng and not within_area(r_lat, r_lng):
+            print(f"    skip (out of area): {addr}")
+            continue
+
+        if town_is_blacklisted(addr):
+            print(f"    skip (blacklisted town): {addr}")
+            continue
+
+        # Home sqft — from search result
+        home_sqft = None
+        for _sqk in ["sqFt", "squareFeet", "finishedSqFt", "livingArea", "homeSize"]:
+            _sqv = r.get(_sqk)
+            if _sqv is not None:
+                try:
+                    home_sqft = float(str(_sqv).replace(",", ""))
+                except Exception:
+                    pass
+                if home_sqft:
+                    break
+
+        if home_sqft and home_sqft < MIN_SQFT:
+            print(f"    skip (too small: {home_sqft} sqft): {addr}")
+            continue
+
+        lot_info = r.get("lotSize") or {}
+        lot = lot_info.get("amount") if isinstance(lot_info, dict) else lot_info
+
+        rel_url  = r.get("url") or r.get("href") or r.get("detailUrl") or ""
+        full_url = f"https://www.redfin.com{rel_url}" if rel_url.startswith("/") else rel_url
+
+        risk = check_location_risk(addr, None, None)
+
+        photo_url       = ""
+        photo_url_hires = ""
+        photo_urls = r.get("photoUrls") or {}
+        medium_list = photo_urls.get("mediumRes") or []
+        hires_list  = photo_urls.get("highRes")   or []
+        if medium_list: photo_url       = medium_list[0] if isinstance(medium_list, list) else medium_list
+        if hires_list:  photo_url_hires = hires_list[0]  if isinstance(hires_list,  list) else hires_list
+        if not photo_url_hires: photo_url_hires = photo_url
+
+        listings.append({
+            "id":               f"redfin_th_{property_id}",
+            "address":          addr,
+            "price":            price,
+            "beds":             beds,
+            "baths":            baths,
+            "lot_sqft":         lot,
+            "home_sqft":        home_sqft,
+            "url":              full_url,
+            "source":           "Redfin",
+            "listing_type":     "townhouse",
+            "photo_url":        photo_url,
+            "photo_url_hires":  photo_url_hires,
+            "basement_label":   basement_label,
+            "garage_label":     garage_label,
+            "property_road":    risk["property_road"],
+            "near_highway":     risk["near_highway"],
+            "highway_roads":    risk["highway_roads"],
+        })
+        print(f"    PASS TH: {addr} {fmt_price(price)} | {basement_label or 'no basement data'} | {garage_label}")
+
+    return listings
+
+
+# ---------------------------------------------------------------------------
 # Zillow
 # ---------------------------------------------------------------------------
 
@@ -958,6 +1182,240 @@ def process_zillow_area(area):
     return listings
 
 # ---------------------------------------------------------------------------
+# Zillow — Townhouse
+# ---------------------------------------------------------------------------
+
+def zillow_townhouse_search(area):
+    """
+    Zillow /search/byaddress with keywords=townhouse, home_type=Townhouses.
+    Confirmed returning 21 results for Bridgewater with correct homeType=TOWNHOUSE
+    in detail call (S007 validation).
+    Photos: media.propertyPhotoLinks.mediumSizeLink / highResolutionLink at search level;
+    mediumImageLink / hiResImageLink in detail call (same as ranch).
+    """
+    print(f"  Zillow TH search: {area['name']}...")
+    data = api_get(ZILLOW_BASE, "/search/byaddress", {
+        "location":         area["zillow_location"],
+        "listing_status":   "For_Sale",
+        "keywords":         "townhouse",
+        "bed_min":          MIN_BEDS,
+        "bathrooms":        "TwoPlus",
+        "home_type":        "Townhomes",
+        "list_price_range": f"min:0, max:{MAX_PRICE}",
+    })
+    if not data:
+        return []
+    raw = data.get("searchResults") or []
+    results = [item.get("property") or item for item in raw]
+    print(f"    → {len(results)} raw hits")
+    return results
+
+
+def zillow_townhouse_labels(details):
+    """
+    Extract basement + garage labels from Zillow detail call for a townhouse.
+    No ranch check — keyword=townhouse + homeType=Townhouses confirms type.
+    Confirmed fields (S007 validation): resoFacts.basementYN, resoFacts.basement,
+    mediumImageLink, hiResImageLink same as ranch detail call.
+    Returns (basement_label, garage_label)
+    """
+    if not details:
+        return "", "🚗 Unknown"
+
+    pd   = details.get("propertyDetails") or details
+    reso = pd.get("resoFacts") or {}
+    desc = str(pd.get("description") or details.get("description") or "").lower()
+
+    # Basement label
+    basement_yn  = reso.get("basementYN")
+    basement_str = str(reso.get("basement") or "").lower()
+
+    if isinstance(basement_yn, bool):
+        yn_confirmed = basement_yn
+    elif isinstance(basement_yn, str):
+        yn_confirmed = basement_yn.strip().lower() in ("yes", "true", "1")
+    else:
+        yn_confirmed = None
+
+    desc_has_basement = any(kw in desc for kw in BASEMENT_KEYWORDS)
+
+    if yn_confirmed is True:
+        if "finish" in basement_str and "unfinish" not in basement_str:
+            basement_label = "✅ Finished Basement"
+        elif "unfinish" in basement_str:
+            basement_label = "✅ Unfinished Basement"
+        elif basement_str and basement_str not in ("none", ""):
+            basement_label = "✅ Basement"
+        else:
+            basement_label = "✅ Basement"
+    elif basement_str and basement_str not in ("none", ""):
+        basement_label = "✅ Basement"
+    elif desc_has_basement:
+        basement_label = "⚠️ Basement Unconfirmed"
+    elif yn_confirmed is False:
+        basement_label = "❌ No Basement"
+    else:
+        basement_label = ""
+
+    # Garage label
+    has_garage    = reso.get("hasGarage")
+    has_attached  = reso.get("hasAttachedGarage")
+    garage_cap    = reso.get("garageParkingCapacity")
+    parking_feats = reso.get("parkingFeatures") or []
+    garage_feats  = [f for f in parking_feats
+                     if any(kw in f.lower() for kw in ["garage", "attached", "detached"])]
+
+    if has_garage:
+        parts = []
+        if garage_cap:
+            parts.append(f"{garage_cap}-car")
+        if has_attached:
+            parts.append("attached")
+        elif garage_feats:
+            feat = garage_feats[0].lower()
+            feat_clean = re.sub(r'\bgarage\b', '', feat, flags=re.IGNORECASE).strip(" ,")
+            if feat_clean:
+                parts.append(feat_clean)
+        garage_label = f"🚗 {' '.join(parts)} garage" if parts else "🚗 Garage"
+    elif has_garage is False:
+        garage_label = "🚗 No garage"
+    elif any(kw in desc for kw in ["garage", "carport"]):
+        garage_label = "🚗 Garage (from description)"
+    else:
+        garage_label = "🚗 Unknown"
+
+    return basement_label, garage_label
+
+
+def process_zillow_townhouse_area(area):
+    raw = zillow_townhouse_search(area)
+    listings = []
+    for r in raw:
+        zpid      = r.get("zpid")
+        raw_price = r.get("price") or r.get("unformattedPrice") or r.get("list_price")
+        if isinstance(raw_price, dict):
+            price = raw_price.get("value") or raw_price.get("amount")
+        else:
+            price = raw_price
+        baths = r.get("bathrooms") or r.get("baths")
+        beds  = r.get("bedrooms")  or r.get("beds")
+
+        try:
+            if price and float(str(price).replace(",", "")) > MAX_PRICE:
+                continue
+        except (TypeError, ValueError):
+            pass
+        try:
+            if baths and float(str(baths).replace(",", "")) < MIN_BATHS:
+                continue
+        except (TypeError, ValueError):
+            pass
+
+        if not zpid:
+            print(f"    skip (missing zpid): {zillow_fmt_address(r)}")
+            continue
+
+        addr_info = r.get("address") or {}
+        z_street  = addr_info.get("streetAddress") or "" if isinstance(addr_info, dict) else ""
+        z_state   = addr_info.get("state") or addr_info.get("state_code") or "" if isinstance(addr_info, dict) else ""
+
+        if z_state and z_state.upper() != "NJ":
+            print(f"    skip (out of state: {z_state}): {z_street}")
+            continue
+
+        details = zillow_details(zpid)
+        basement_label, garage_label = zillow_townhouse_labels(details)
+
+        # Home sqft from Zillow details resoFacts
+        zl_home_sqft = None
+        _zrf = (details.get("propertyDetails") or details).get("resoFacts") or {} if details else {}
+        for _sqk in ["livingArea", "aboveGradeFinishedArea", "finishedArea"]:
+            _sqv = _zrf.get(_sqk)
+            if _sqv is not None:
+                try:
+                    zl_home_sqft = float(str(_sqv).replace(",", "").split()[0])
+                except Exception:
+                    pass
+                if zl_home_sqft:
+                    break
+
+        addr = zillow_fmt_address(r)
+
+        if town_is_blacklisted(addr):
+            print(f"    skip (blacklisted town): {addr}")
+            continue
+
+        if zl_home_sqft and zl_home_sqft < MIN_SQFT:
+            print(f"    skip (too small: {zl_home_sqft} sqft): {addr}")
+            continue
+
+        loc   = r.get("location") or {}
+        z_lat = loc.get("latitude")
+        z_lng = loc.get("longitude")
+        if z_lat and z_lng and not within_area(z_lat, z_lng):
+            print(f"    skip (out of area): {addr}")
+            continue
+
+        lot_info = r.get("lotSizeWithUnit") or {}
+        if isinstance(lot_info, dict):
+            lot_val  = lot_info.get("lotSize")
+            lot_unit = (lot_info.get("lotSizeUnit") or "").lower()
+            if lot_val and "acre" in lot_unit:
+                try:    lot = round(float(lot_val) * 43560, 1)
+                except: lot = None
+            else:
+                try:    lot = round(float(str(lot_val).replace(",", "")), 1) if lot_val else None
+                except: lot = None
+        else:
+            raw_lot = r.get("lotAreaValue") or r.get("lot_sqft")
+            try:    lot = round(float(str(raw_lot).replace(",", "")), 1) if raw_lot else None
+            except: lot = None
+
+        risk = check_location_risk(addr, None, None)
+
+        # Photos — try detail call fields first (confirmed same as ranch in S007),
+        # fall back to search-result media fields
+        photo_url       = ""
+        photo_url_hires = ""
+        if details:
+            pd_d = details.get("propertyDetails") or {}
+            photo_url       = pd_d.get("mediumImageLink") or ""
+            photo_url_hires = pd_d.get("hiResImageLink")  or ""
+            if not photo_url_hires and photo_url:
+                photo_url_hires = re.sub(r'-p_[a-z]\.jpg$', '-uncropped_scaled_within_1344_1008.jpg', photo_url)
+        if not photo_url:
+            media = r.get("media") or {}
+            links = media.get("propertyPhotoLinks") or {}
+            photo_url       = links.get("mediumSizeLink")     or ""
+            photo_url_hires = links.get("highResolutionLink") or photo_url
+        if not photo_url_hires:
+            photo_url_hires = photo_url
+
+        listings.append({
+            "id":               f"zillow_th_{zpid}",
+            "address":          addr,
+            "price":            price,
+            "beds":             beds,
+            "baths":            baths,
+            "lot_sqft":         lot,
+            "home_sqft":        zl_home_sqft,
+            "url":              f"https://www.zillow.com/homedetails/{zpid}_zpid/",
+            "source":           "Zillow",
+            "listing_type":     "townhouse",
+            "photo_url":        photo_url,
+            "photo_url_hires":  photo_url_hires,
+            "basement_label":   basement_label,
+            "garage_label":     garage_label,
+            "property_road":    risk["property_road"],
+            "near_highway":     risk["near_highway"],
+            "highway_roads":    risk["highway_roads"],
+        })
+        print(f"    PASS TH: {addr} {fmt_price(price)} | {basement_label or 'no basement data'} | {garage_label}")
+
+    return listings
+
+
+# ---------------------------------------------------------------------------
 # Dedup
 # ---------------------------------------------------------------------------
 
@@ -1225,6 +1683,9 @@ def _shell_html(run_time, worker_url):
   .source-zillow{background:#fef9c3;color:#854d0e;}
   .source-redfin{background:#fee2e2;color:#991b1b;}
   .source-realtor-com{background:#e0f2fe;color:#0c4a6e;}
+  .source-zillow.th{background:#f0fdf4;color:#166534;}
+  .source-redfin.th{background:#f0fdf4;color:#166534;}
+  .listing-type-townhouse .card{border-left:3px solid #166534;}
   .badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
   .badge{font-size:.75rem;font-weight:600;padding:3px 10px;border-radius:4px;}
   .badge-basement-yes{background:#dcfce7;color:#166534;}
@@ -1301,6 +1762,7 @@ def _shell_html(run_time, worker_url):
     <button onclick="showTab('both',this)">💑 (<span id="nav-both">0</span>)</button>
     <button onclick="showTab('think',this)">🤔 Maybe (<span id="nav-think">0</span>)</button>
     <button onclick="showTab('deleted',this)">🗑️ Deleted (<span id="nav-deleted">0</span>)</button>
+    <button onclick="showTab('townhouse',this)">🏘️ Townhouses (<span id="nav-townhouse">0</span>)</button>
     <button id="filter-toggle" onclick="toggleFilterBar(this)" style="margin-left:auto;">🔍 Filter</button>
     <div id="help-menu-wrap" style="position:relative;border-left:1px solid var(--border);">
       <button id="help-btn" onclick="toggleHelpMenu()" style="font-size:.9rem;font-weight:700;padding:8px 14px;border:none;background:none;color:var(--muted);cursor:pointer;line-height:1;" title="Resources">?</button>
@@ -1396,6 +1858,7 @@ def _shell_html(run_time, worker_url):
   <div id="tab-both"          class="tab-pane hidden"></div>
   <div id="tab-think"         class="tab-pane hidden"></div>
   <div id="tab-deleted"       class="tab-pane hidden"></div>
+  <div id="tab-townhouse"     class="tab-pane hidden"></div>
 </main>
 <div id="toast"></div>
 <div id="lightbox" onclick="closeLightbox()"><img id="lightbox-img" src="" alt="Property photo"></div>
@@ -1464,9 +1927,23 @@ function isNewThisWeek(listing) {
   return (Date.now() - d.getTime()) / 86400000 <= DAYS_NEW;
 }
 
+function isTownhouse(L) {
+  return L.listing_type === "townhouse";
+}
+
 function groupByStatus() {
-  const groups = {unreviewed:[], favorite:[], both:[], think:[], deleted:[]};
+  const groups = {unreviewed:[], favorite:[], both:[], think:[], deleted:[], townhouse:[]};
   for (const [id, L] of Object.entries(state)) {
+    // Townhouses go to their own tab regardless of status (except deleted)
+    if (isTownhouse(L)) {
+      const s = L.status || "new";
+      if (s === "deleted") {
+        groups.deleted.push([id,L]);
+      } else {
+        groups.townhouse.push([id,L]);
+      }
+      continue;
+    }
     const s = L.status || "new";
     if (s === "deleted") {
       groups.deleted.push([id,L]);
@@ -1487,6 +1964,12 @@ function groupByStatus() {
     if (rd !== 0) return rd;
     const lm = (b[1].last_modified||"").localeCompare(a[1].last_modified||"");
     return lm !== 0 ? lm : (b[1].first_seen||"").localeCompare(a[1].first_seen||"");
+  });
+  // Sort townhouses by price ascending
+  groups.townhouse.sort((a,b) => {
+    const pa = priceNum(a[1].price) || 9999999;
+    const pb = priceNum(b[1].price) || 9999999;
+    return pa - pb;
   });
   return groups;
 }
@@ -1619,6 +2102,15 @@ function renderAll() {
   // Tab: Maybe
   renderSimpleTab("tab-think", think, "Nothing in Maybe yet.");
 
+  // Tab: Townhouses — separate tab, all statuses except deleted, sorted by price
+  const thPane = document.getElementById("tab-townhouse");
+  if (groups.townhouse.length === 0) {
+    thPane.innerHTML = '<p class="empty">No townhouse listings found.</p>';
+  } else {
+    const thFiltered = filterItems(groups.townhouse, false);
+    thPane.innerHTML = `<div class="grid">${thFiltered.map(([id,L]) => renderCard(id,L)).join("")}</div>`;
+  }
+
   // Tab: Deleted — always unfiltered, with Purge All button
   const delPane = document.getElementById("tab-deleted");
   if (groups.deleted.length === 0) {
@@ -1666,6 +2158,7 @@ function updateNavCounts(groups, ntwCount) {
   document.getElementById("nav-both").textContent          = groups.both.length;
   document.getElementById("nav-think").textContent         = groups.think.length;
   document.getElementById("nav-deleted").textContent       = groups.deleted.length;
+  document.getElementById("nav-townhouse").textContent     = groups.townhouse.length;
 }
 
 // ── Button handlers ───────────────────────────────────────────────────────────
@@ -2056,10 +2549,23 @@ def main():
     state = load_state()
     all_fresh = []
 
+    # --- Ranch pass ---
+    print("\n" + "=" * 40)
+    print("RANCH PASS")
+    print("=" * 40)
     for area in SEARCH_AREAS:
         print(f"\n--- {area['name']}, {area['state']} ---")
         all_fresh.extend(process_redfin_area(area))
         all_fresh.extend(process_zillow_area(area))
+
+    # --- Townhouse pass ---
+    print("\n" + "=" * 40)
+    print("TOWNHOUSE PASS")
+    print("=" * 40)
+    for area in SEARCH_AREAS:
+        print(f"\n--- {area['name']}, {area['state']} ---")
+        all_fresh.extend(process_redfin_townhouse_area(area))
+        all_fresh.extend(process_zillow_townhouse_area(area))
 
     print(f"\n--- Dedup ({len(all_fresh)} candidates) ---")
     deduped = dedup_listings(all_fresh)
