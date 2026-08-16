@@ -607,6 +607,15 @@ def process_redfin_area(area):
             print(f"    skip (blacklisted town): {addr}")
             continue
 
+        # Home sqft — must be assigned before MIN_SQFT check
+        home_sqft = None
+        for _sqk in ["sqFt","squareFeet","finishedSqFt","livingArea","homeSize"]:
+            _sqv = r.get(_sqk)
+            if _sqv is not None:
+                try: home_sqft = float(str(_sqv).replace(",",""))
+                except: pass
+                if home_sqft: break
+
         if home_sqft and home_sqft < MIN_SQFT:
             print(f"    skip (too small: {home_sqft} sqft): {addr}")
             continue
@@ -617,14 +626,6 @@ def process_redfin_area(area):
 
         lot_info = r.get("lotSize") or {}
         lot = lot_info.get("amount") if isinstance(lot_info, dict) else lot_info
-        # Home sqft — from search result
-        home_sqft = None
-        for _sqk in ["sqFt","squareFeet","finishedSqFt","livingArea","homeSize"]:
-            _sqv = r.get(_sqk)
-            if _sqv is not None:
-                try: home_sqft = float(str(_sqv).replace(",",""))
-                except: pass
-                if home_sqft: break
 
         rel_url  = r.get("url") or r.get("href") or r.get("detailUrl") or ""
         full_url = f"https://www.redfin.com{rel_url}" if rel_url.startswith("/") else rel_url
