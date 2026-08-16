@@ -293,21 +293,24 @@ function isTownhouse(L) {
 function groupByStatus() {
   const groups = {unreviewed:[], favorite:[], both:[], think:[], deleted:[], townhouse:[]};
   for (const [id, L] of Object.entries(state)) {
-    // Townhouses go to their own tab regardless of status (except deleted)
-    if (isTownhouse(L)) {
-      const s = L.status || "new";
-      if (s === "deleted") {
-        groups.deleted.push([id,L]);
-      } else {
-        groups.townhouse.push([id,L]);
-      }
-      continue;
-    }
     const s = L.status || "new";
     if (s === "deleted") {
       groups.deleted.push([id,L]);
       continue;
     }
+    // Townhouses: unreviewed go to townhouse tab; reviewed flow into normal tabs
+    if (isTownhouse(L)) {
+      if (!s || s === "new") {
+        groups.townhouse.push([id,L]);
+      } else if (s === "favorite") {
+        if (L.christine_favorite) groups.both.push([id,L]);
+        else groups.favorite.push([id,L]);
+      } else if (s === "think") {
+        groups.think.push([id,L]);
+      }
+      continue;
+    }
+    // Ranches
     if (s === "favorite") {
       if (L.christine_favorite) groups.both.push([id,L]);
       else groups.favorite.push([id,L]);
@@ -461,35 +464,13 @@ function renderAll() {
   // Tab: Maybe
   renderSimpleTab("tab-think", think, "Nothing in Maybe yet.");
 
-  // Tab: Townhouses — grouped by status: favorites, maybe, unreviewed
+  // Tab: Townhouses — unreviewed only (favorites/maybe/both flow to their normal tabs)
   const thPane = document.getElementById("tab-townhouse");
   if (groups.townhouse.length === 0) {
-    thPane.innerHTML = '<p class="empty">No townhouse listings found.</p>';
+    thPane.innerHTML = '<p class="empty">No unreviewed townhouse listings.</p>';
   } else {
     const thFiltered = filterItems(groups.townhouse, false);
-    const thFav      = thFiltered.filter(([,L]) => L.status === "favorite");
-    const thThink    = thFiltered.filter(([,L]) => L.status === "think");
-    const thNew      = thFiltered.filter(([,L]) => !L.status || L.status === "new");
-    let thHtml = "";
-    if (thFav.length) {
-      thHtml += `<div class="run-group">
-        <div class="run-group-header"><span class="run-date-label">⭐ Favorites (${thFav.length})</span></div>
-        <div class="grid">${thFav.map(([id,L]) => renderCard(id,L)).join("")}</div>
-      </div>`;
-    }
-    if (thThink.length) {
-      thHtml += `<div class="run-group">
-        <div class="run-group-header"><span class="run-date-label">🤔 Maybe (${thThink.length})</span></div>
-        <div class="grid">${thThink.map(([id,L]) => renderCard(id,L)).join("")}</div>
-      </div>`;
-    }
-    if (thNew.length) {
-      thHtml += `<div class="run-group">
-        <div class="run-group-header"><span class="run-date-label">📋 Unreviewed (${thNew.length})</span></div>
-        <div class="grid">${thNew.map(([id,L]) => renderCard(id,L)).join("")}</div>
-      </div>`;
-    }
-    thPane.innerHTML = thHtml || '<p class="empty">No listings match current filters.</p>';
+    thPane.innerHTML = `<div class="grid">${thFiltered.map(([id,L]) => renderCard(id,L)).join("")}</div>`;
   }
 
   // Tab: Deleted — always unfiltered, with Purge All button
