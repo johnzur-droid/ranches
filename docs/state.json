@@ -2401,7 +2401,7 @@
       "property_road": "",
       "near_highway": false,
       "highway_roads": [],
-      "status": "new",
+      "status": "favorite",
       "first_seen": "2026-08-16",
       "run_date": "2026-08-16",
       "christine_favorite": false,
